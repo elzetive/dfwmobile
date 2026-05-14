@@ -1,0 +1,338 @@
+import 'package:flutter/material.dart';
+import '../core/app_colors.dart';
+
+class TransaksiPage extends StatelessWidget {
+  const TransaksiPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.scaffoldBg,
+      drawer: _buildSideBar(context),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Image.asset('assets/images/logo.jpg', height: 30),
+            const SizedBox(width: 10),
+            const Text(
+              'DFW Playstation',
+              style: TextStyle(
+                color: AppColors.primaryGreen,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Transaksi',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 1.6,
+              children: [
+                _buildStatCard(
+                  'Transaksi Hari Ini',
+                  '5',
+                  AppColors.primaryGreen,
+                ),
+                _buildStatCard(
+                  'Pendapatan Hari Ini',
+                  'Rp.0',
+                  AppColors.primaryGreen,
+                ),
+                _buildStatCard('Sesi Aktif', '5', AppColors.primaryGreen),
+                _buildStatCard(
+                  'Admin Bertugas',
+                  'Wahyu Teja',
+                  AppColors.primaryGreen,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionButton(
+                    'Tambah Transaksi',
+                    AppColors.primaryGreen,
+                    () => Navigator.pushNamed(context, '/tambah-transaksi'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildActionButton(
+                    'Pengembalian',
+                    const Color(0xFF007A54),
+                    () => Navigator.pushNamed(context, '/pengembalian'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 30),
+            const Text(
+              'Transaksi Hari Ini',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 15),
+            _buildTransactionItem(
+              'Dimas Riyan',
+              'PS4-01',
+              '2 Jam',
+              isSelesai: true,
+            ),
+            _buildTransactionItem(
+              'Dimas Riyan',
+              'PS4-01',
+              '2 Jam',
+              isSelesai: false,
+            ),
+            _buildTransactionItem(
+              'Dimas Riyan',
+              'PS4-01',
+              '2 Jam',
+              isSelesai: false,
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: 2,
+        selectedItemColor: AppColors.primaryGreen,
+        unselectedItemColor: Colors.black,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        onTap: (index) {
+          if (index == 0) Navigator.pushReplacementNamed(context, '/dashboard');
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_outlined),
+            label: '',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: ''),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.analytics_outlined),
+            label: '',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSideBar(BuildContext context) {
+    return Drawer(
+      child: Column(
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(color: Colors.white),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('assets/images/logo.jpg', height: 60),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'DFW Menu',
+                    style: TextStyle(
+                      color: AppColors.primaryGreen,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _buildDrawerItem(
+            Icons.dashboard_outlined,
+            'Dashboard',
+            () => Navigator.pushReplacementNamed(context, '/dashboard'),
+          ),
+          _buildDrawerItem(
+            Icons.list_alt_outlined,
+            'Transaksi',
+            () => Navigator.pop(context),
+          ),
+          _buildDrawerItem(
+            Icons.settings_input_component_outlined,
+            'Operasional',
+            () {},
+          ),
+          _buildDrawerItem(Icons.people_outline, 'Pelanggan', () {}),
+          _buildDrawerItem(Icons.bar_chart_outlined, 'Laporan', () {}),
+          const Spacer(),
+          _buildDrawerItem(
+            Icons.logout,
+            'Keluar',
+            () => Navigator.pushReplacementNamed(context, '/'),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: ListTile(
+        leading: Icon(icon, color: Colors.black87),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: color),
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(String text, Color color, VoidCallback onTap) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionItem(
+    String name,
+    String konsol,
+    String durasi, {
+    required bool isSelesai,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.primaryGreen),
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.primaryGreen),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  isSelesai ? 'Selesai' : 'Aktif',
+                  style: const TextStyle(
+                    color: AppColors.primaryGreen,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'Konsol : $konsol\nDurasi : $durasi',
+                style: const TextStyle(fontSize: 12, height: 1.5),
+              ),
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade700,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Hapus',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -10,7 +10,15 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  String? selectedRole;
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,18 +29,15 @@ class _LoginPageState extends State<LoginPage> {
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Column(
             children: [
-              const SizedBox(height: 50),
-              // Panggil Logo JPG yang sudah didaftarkan di assets
+              const SizedBox(height: 60),
               Image.asset(
                 'assets/images/logo.jpg',
                 height: 150,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(
-                    Icons.videogame_asset,
-                    size: 100,
-                    color: AppColors.primaryGreen,
-                  );
-                },
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.videogame_asset,
+                  size: 100,
+                  color: AppColors.primaryGreen,
+                ),
               ),
               const SizedBox(height: 10),
               const Text(
@@ -54,24 +59,53 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 40),
 
-              _buildLabel('Masuk Sebagai'),
-              _buildDropdown(),
-
-              const SizedBox(height: 20),
               _buildLabel('Username'),
-              _buildInputField('Masukkan Username', Icons.person),
+              _buildInputField(
+                'Masukkan Username',
+                Icons.person_outline,
+                controller: _usernameController,
+              ),
 
               const SizedBox(height: 20),
               _buildLabel('Password'),
-              _buildInputField('Masukkan Password', Icons.lock, isPass: true),
+              _buildInputField(
+                'Masukkan Password',
+                Icons.lock_outline,
+                isPass: true,
+                controller: _passwordController,
+              ),
 
               const SizedBox(height: 50),
+
               CustomButton(
                 text: 'Login',
                 onPressed: () {
-                  debugPrint("Login klik!");
+                  Navigator.pushReplacementNamed(context, '/dashboard');
                 },
               ),
+
+              const SizedBox(height: 25),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Belum punya akun? "),
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () => Navigator.pushNamed(context, '/register'),
+                      child: const Text(
+                        "Daftar Sekarang",
+                        style: TextStyle(
+                          color: AppColors.primaryGreen,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 30),
             ],
           ),
         ),
@@ -85,40 +119,28 @@ class _LoginPageState extends State<LoginPage> {
     child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
   );
 
-  Widget _buildDropdown() => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: Colors.grey.shade300),
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        isExpanded: true,
-        value: selectedRole,
-        hint: const Text('Pilih'),
-        items: [
-          'Admin',
-          'Kasir',
-        ].map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
-        onChanged: (val) => setState(() => selectedRole = val),
+  Widget _buildInputField(
+    String hint,
+    IconData icon, {
+    bool isPass = false,
+    TextEditingController? controller,
+  }) => TextField(
+    controller: controller,
+    obscureText: isPass,
+    decoration: InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon, color: Colors.black54),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(vertical: 15),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
       ),
     ),
   );
-
-  Widget _buildInputField(String hint, IconData icon, {bool isPass = false}) =>
-      TextField(
-        obscureText: isPass,
-        decoration: InputDecoration(
-          hintText: hint,
-          prefixIcon: Icon(icon, color: Colors.black54),
-          filled: true,
-          fillColor: Colors.white,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
 }
