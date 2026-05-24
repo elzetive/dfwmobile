@@ -11,6 +11,42 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   String? selectedRole;
+  late TextEditingController usernameController;
+  late TextEditingController passwordController;
+
+  @override
+  void initState() {
+    super.initState();
+    usernameController = TextEditingController();
+    passwordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    usernameController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  void _handleLogin() {
+    final username = usernameController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mohon isi username dan password')),
+      );
+      return;
+    }
+
+    if (username == 'admin' && password == '123') {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Username atau password salah')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,18 +95,16 @@ class _LoginPageState extends State<LoginPage> {
 
               const SizedBox(height: 20),
               _buildLabel('Username'),
-              _buildInputField('Masukkan Username', Icons.person),
+              _buildInputField('Masukkan Username', Icons.person, usernameController),
 
               const SizedBox(height: 20),
               _buildLabel('Password'),
-              _buildInputField('Masukkan Password', Icons.lock, isPass: true),
+              _buildInputField('Masukkan Password', Icons.lock, passwordController, isPass: true),
 
               const SizedBox(height: 50),
               CustomButton(
                 text: 'Login',
-                onPressed: () {
-                  debugPrint("Login klik!");
-                },
+                onPressed: _handleLogin,
               ),
             ],
           ),
@@ -106,8 +140,9 @@ class _LoginPageState extends State<LoginPage> {
     ),
   );
 
-  Widget _buildInputField(String hint, IconData icon, {bool isPass = false}) =>
+  Widget _buildInputField(String hint, IconData icon, TextEditingController controller, {bool isPass = false}) =>
       TextField(
+        controller: controller,
         obscureText: isPass,
         decoration: InputDecoration(
           hintText: hint,

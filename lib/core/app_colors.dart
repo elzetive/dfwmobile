@@ -6,4 +6,6 @@ class AppColors {
   static const Color darkGrey = Color(0xFF2C3E50);
   static const Color scaffoldBg = Color(0xFFF8F9FA);
   static const Color white = Colors.white;
+  static const Color dangerRed = Color(0xFFE74C3C);
+  static const Color borderGrey = Color(0xFFE0E0E0);
 }
