@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
+import 'pelanggan_page.dart';
+import 'laporan_page.dart';
+import 'pengaturan_page.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -72,6 +75,14 @@ class DashboardPage extends StatelessWidget {
         unselectedItemColor: Colors.black,
         showSelectedLabels: false,
         showUnselectedLabels: false,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const PengaturanPage()),
+            );
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
           BottomNavigationBarItem(
@@ -122,8 +133,18 @@ class DashboardPage extends StatelessWidget {
             'Operasional',
             () {},
           ),
-          _buildDrawerItem(Icons.people_outline, 'Pelanggan', () {}),
-          _buildDrawerItem(Icons.bar_chart_outlined, 'Laporan', () {}),
+          _buildDrawerItem(Icons.people_outline, 'Pelanggan', () {
+            Navigator.push(
+              context, 
+              MaterialPageRoute(builder: (context) => const PelangganPage()),
+            );
+          }),
+          _buildDrawerItem(Icons.bar_chart_outlined, 'Laporan', () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LaporanPage()),
+            );
+          }),
           const Spacer(),
           _buildDrawerItem(Icons.logout, 'Keluar', () {
             Navigator.pushReplacementNamed(context, '/');
