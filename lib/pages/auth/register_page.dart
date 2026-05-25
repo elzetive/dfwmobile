@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
-import '../widgets/custom_button.dart';
+import '../../core/app_colors.dart';
+import '../../widgets/custom_button.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

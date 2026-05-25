@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
-import '../widgets/side_bar.dart';
+import '../../core/app_colors.dart';
+import '../../widgets/side_bar.dart';
 
 class PengaturanPage extends StatefulWidget {
   const PengaturanPage({super.key});

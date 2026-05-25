@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
-import '../widgets/side_bar.dart';
+import '../../core/app_colors.dart';
+import '../../widgets/side_bar.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -39,6 +39,8 @@ class DashboardPage extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
+
+            // 1. Grid Statistik Utama
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
@@ -53,12 +55,41 @@ class DashboardPage extends StatelessWidget {
                 _buildStatCard('Dalam Perawatan', '0', Colors.orange),
               ],
             ),
+
+            const SizedBox(height: 30),
+            const Text(
+              'Kelola Peralatan',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 15),
+
+            // 2. Menu Kartu Navigasi Peralatan (Pindahan dari HomePage)
+            _buildMenuCard(
+              title: 'Daftar Konsol',
+              subtitle: 'Kelola data aset konsol game',
+              icon: Icons.videogame_asset,
+              onTap: () {
+                Navigator.pushNamed(context, '/daftar-konsol');
+              },
+            ),
+            const SizedBox(height: 15),
+            _buildMenuCard(
+              title: 'Daftar TV',
+              subtitle: 'Kelola data monitor dan TV terpasang',
+              icon: Icons.tv,
+              onTap: () {
+                Navigator.pushNamed(context, '/daftar-tv');
+              },
+            ),
+
             const SizedBox(height: 30),
             const Text(
               'Transaksi Terbaru',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 15),
+
+            // 3. List Transaksi Aktif Hari Ini
             _buildTransactionItem('Dimas Riyan', 'PS4-01', '2 Jam'),
             _buildTransactionItem('Dimas Riyan', 'PS4-01', '2 Jam'),
           ],
@@ -76,7 +107,7 @@ class DashboardPage extends StatelessWidget {
           if (index == 3) Navigator.pushReplacementNamed(context, '/laporan');
         },
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings_outlined),
             label: '',
@@ -97,6 +128,7 @@ class DashboardPage extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: color.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,6 +151,64 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
+  Widget _buildMenuCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.borderGrey),
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.white,
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                // Di sini aman tanpa const karena nilainya dinamis
+                color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 28, color: AppColors.primaryGreen),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkGrey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: AppColors.darkGrey,
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTransactionItem(String name, String konsol, String durasi) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -126,6 +216,7 @@ class DashboardPage extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.primaryGreen),
         borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -1,22 +1,29 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
-import 'pages/login_page.dart';
-import 'pages/register_page.dart';
-import 'pages/dashboard_page.dart';
-import 'pages/transaksi_page.dart';
-import 'pages/tambah_transaksi_page.dart';
-import 'pages/pengembalian_page.dart';
-import 'pages/operasional_page.dart';
-import 'pages/daftar_konsol.dart';
-import 'pages/daftar_tv.dart';
-import 'pages/tambah_konsol.dart';
-import 'pages/tambah_tv.dart';
-import 'pages/tambah_unit.dart';
-import 'pages/pelanggan_page.dart';
-import 'pages/tambah_pelanggan_page.dart';
-import 'pages/laporan_page.dart';
-import 'pages/detail_laporan_page.dart';
-import 'pages/pengaturan_page.dart';
+
+import 'pages/auth/login_page.dart';
+import 'pages/auth/register_page.dart';
+
+import 'pages/dashboard/main_page.dart' as dashboard;
+
+import 'pages/laporan/main_page.dart' as laporan;
+import 'pages/laporan/detail_page.dart' as laporan_detail;
+
+import 'pages/operasional/main_page.dart' as operasional;
+import 'pages/operasional/konsol/main_page.dart' as konsol;
+import 'pages/operasional/konsol/tambah_page.dart' as konsol_tambah;
+import 'pages/operasional/tv/main_page.dart' as tv;
+import 'pages/operasional/tv/tambah_page.dart' as tv_tambah;
+import 'pages/operasional/unit/tambah_page.dart' as unit_tambah;
+
+import 'pages/pelanggan/main_page.dart' as pelanggan;
+import 'pages/pelanggan/tambah_page.dart' as pelanggan_tambah;
+
+import 'pages/pengaturan/main_page.dart' as pengaturan;
+
+import 'pages/transaksi/main_page.dart' as transaksi;
+import 'pages/transaksi/tambah_page.dart' as transaksi_tambah;
+import 'pages/transaksi/pengembalian/main_page.dart' as pengembalian;
+
 import 'core/app_colors.dart';
 
 void main() {
@@ -39,26 +46,34 @@ class MyApp extends StatelessWidget {
           primary: AppColors.primaryGreen,
         ),
       ),
-      // Gunakan initialRoute, jangan campur dengan parameter home:
       initialRoute: '/login',
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/dashboard': (context) => const DashboardPage(),
-        '/transaksi': (context) => const TransaksiPage(),
-        '/tambah-transaksi': (context) => const TambahTransaksiPage(),
-        '/pengembalian': (context) => const PengembalianPage(),
-        '/operasional': (context) => const OperasionalPage(),
-        '/daftar-konsol': (context) => const DaftarKonsolPage(),
-        '/daftar-tv': (context) => const DaftarTVPage(),
-        '/tambah-konsol': (context) => const TambahKonsolPage(),
-        '/tambah-tv': (context) => const TambahTVPage(),
-        '/tambah-unit': (context) => const TambahUnitPage(),
-        '/pelanggan': (context) => const PelangganPage(),
-        '/tambah-pelanggan': (context) => const TambahPelangganPage(),
-        '/laporan': (context) => const LaporanPage(),
-        '/detail-laporan': (context) => const DetailLaporanPage(),
-        '/pengaturan': (context) => const PengaturanPage(),
+
+        '/dashboard': (context) => const dashboard.DashboardPage(),
+
+        '/transaksi': (context) => const transaksi.TransaksiPage(),
+        '/tambah-transaksi': (context) =>
+            const transaksi_tambah.TambahTransaksiPage(),
+        '/pengembalian': (context) => const pengembalian.PengembalianPage(),
+
+        '/operasional': (context) => const operasional.OperasionalPage(),
+        '/daftar-konsol': (context) => const konsol.DaftarKonsolPage(),
+        '/tambah-konsol': (context) => const konsol_tambah.TambahKonsolPage(),
+        '/daftar-tv': (context) => const tv.DaftarTVPage(),
+        '/tambah-tv': (context) => const tv_tambah.TambahTVPage(),
+        '/tambah-unit': (context) => const unit_tambah.TambahUnitPage(),
+
+        '/pelanggan': (context) => const pelanggan.PelangganPage(),
+        '/tambah-pelanggan': (context) =>
+            const pelanggan_tambah.TambahPelangganPage(),
+
+        '/laporan': (context) => const laporan.LaporanPage(),
+        '/detail-laporan': (context) =>
+            const laporan_detail.DetailLaporanPage(),
+
+        '/pengaturan': (context) => const pengaturan.PengaturanPage(),
       },
     );
   }
