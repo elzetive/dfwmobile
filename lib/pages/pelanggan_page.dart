@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
 import '../widgets/custom_button.dart';
-import 'tambah_pelanggan_page.dart';
-import 'dashboard_page.dart';
-import 'laporan_page.dart';
-
+import '../widgets/side_bar.dart';
 
 class PelangganPage extends StatelessWidget {
   const PelangganPage({super.key});
@@ -13,14 +10,17 @@ class PelangganPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
-      drawer: _buildSideBar(context),
+      drawer: const SideBar(),
       appBar: AppBar(
         title: Row(
           children: [
             Image.asset(
               'assets/images/logo.jpg',
               height: 30,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.sports_esports, color: AppColors.primaryGreen),
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.sports_esports,
+                color: AppColors.primaryGreen,
+              ),
             ),
             const SizedBox(width: 10),
             const Text(
@@ -49,22 +49,26 @@ class PelangganPage extends StatelessWidget {
             const SizedBox(height: 20),
             CustomButton(
               text: '+ Tambah Pelanggan Baru',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const TambahPelangganPage()),
-                );
-              },
+              onPressed: () =>
+                  Navigator.pushNamed(context, '/tambah-pelanggan'),
             ),
             const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
-                  child: _buildStatCard('Total Pelanggan', '2', AppColors.primaryGreen),
+                  child: _buildStatCard(
+                    'Total Pelanggan',
+                    '2',
+                    AppColors.primaryGreen,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: _buildStatCard('Pelanggan Aktif', '1', AppColors.accentOrange),
+                  child: _buildStatCard(
+                    'Pelanggan Aktif',
+                    '1',
+                    AppColors.accentOrange,
+                  ),
                 ),
               ],
             ),
@@ -74,8 +78,22 @@ class PelangganPage extends StatelessWidget {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 15),
-            _buildPelangganItem('1', 'Dimas Riyan Wirayuda', '081226723902', 'Jalan Kemangi No 41', '24-05-2026', 'Aktif'),
-            _buildPelangganItem('10', 'Figo Firgiawan', '081226723908', 'Karangtengah, Cilongok, Banyumas', '24-05-2026', 'Nonaktif'),
+            _buildPelangganItem(
+              '1',
+              'Dimas Riyan Wirayuda',
+              '081226723902',
+              'Jalan Kemangi No 41',
+              '24-05-2026',
+              'Aktif',
+            ),
+            _buildPelangganItem(
+              '10',
+              'Figo Firgiawan',
+              '081226723908',
+              'Karangtengah, Cilongok, Banyumas',
+              '24-05-2026',
+              'Nonaktif',
+            ),
           ],
         ),
       ),
@@ -85,11 +103,23 @@ class PelangganPage extends StatelessWidget {
         unselectedItemColor: Colors.black,
         showSelectedLabels: false,
         showUnselectedLabels: false,
+        onTap: (index) {
+          if (index == 0) Navigator.pushReplacementNamed(context, '/dashboard');
+          if (index == 1) Navigator.pushNamed(context, '/pengaturan');
+          if (index == 2) Navigator.pushReplacementNamed(context, '/transaksi');
+          if (index == 3) Navigator.pushReplacementNamed(context, '/laporan');
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: ''),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_outlined),
+            label: '',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics_outlined), label: ''),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.analytics_outlined),
+            label: '',
+          ),
         ],
       ),
     );
@@ -115,16 +145,34 @@ class PelangganPage extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 13),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
           ),
           const SizedBox(height: 10),
-          Text(count, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+          Text(
+            count,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildPelangganItem(String id, String name, String phone, String alamat, String tgl, String status) {
+  Widget _buildPelangganItem(
+    String id,
+    String name,
+    String phone,
+    String alamat,
+    String tgl,
+    String status,
+  ) {
     bool isActive = status == 'Aktif';
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -134,7 +182,11 @@ class PelangganPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 2))
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
@@ -150,15 +202,38 @@ class PelangganPage extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(width: 105, child: Text('Status', style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500))),
-                const Text(' :  ', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                const SizedBox(
+                  width: 105,
+                  child: Text(
+                    'Status',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const Text(
+                  ' :  ',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: isActive ? Colors.blue : Colors.grey.shade500,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(status, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    status,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -173,23 +248,47 @@ class PelangganPage extends StatelessWidget {
                 onPressed: () {},
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.primaryGreen),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   minimumSize: Size.zero,
                 ),
-                child: const Text('Ubah', style: TextStyle(color: AppColors.primaryGreen, fontSize: 13, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Ubah',
+                  style: TextStyle(
+                    color: AppColors.primaryGreen,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               const SizedBox(width: 10),
               ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red.shade400,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   minimumSize: Size.zero,
                   elevation: 0,
                 ),
-                child: const Text('Hapus', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Hapus',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
@@ -204,63 +303,32 @@ class PelangganPage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 105, child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500))),
-          const Text(' :  ', style: TextStyle(color: Colors.grey, fontSize: 13)),
-          Expanded(child: Text(value, style: TextStyle(fontSize: 14, color: Colors.black87, fontWeight: isBold ? FontWeight.bold : FontWeight.normal))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSideBar(BuildContext context) {
-    return Drawer(
-      child: Column(
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: Colors.white),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/logo.jpg',
-                    height: 60,
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.sports_esports, size: 60, color: AppColors.primaryGreen),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('DFW Menu', style: TextStyle(color: AppColors.primaryGreen, fontWeight: FontWeight.bold)),
-                ],
+          SizedBox(
+            width: 105,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          _buildDrawerItem(Icons.dashboard_outlined, 'Dashboard', () {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
-          }),
-          _buildDrawerItem(Icons.list_alt_outlined, 'Transaksi', () {}),
-          _buildDrawerItem(Icons.settings_input_component_outlined, 'Operasional', () {}),
-          _buildDrawerItem(Icons.people_outline, 'Pelanggan', () {
-            Navigator.pop(context);
-          }),
-          _buildDrawerItem(Icons.bar_chart_outlined, 'Laporan', () {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LaporanPage()));
-          }),
-          const Spacer(),
-          _buildDrawerItem(Icons.logout, 'Keluar', () {
-            Navigator.pushReplacementNamed(context, '/');
-          }),
-          const SizedBox(height: 20),
+          const Text(
+            ' :  ',
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: ListTile(
-        leading: Icon(icon, color: Colors.black87),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-        onTap: onTap,
       ),
     );
   }

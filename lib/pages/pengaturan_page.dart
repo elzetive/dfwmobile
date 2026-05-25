@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
-import 'dashboard_page.dart';
-import 'transaksi_page.dart';
-import 'pelanggan_page.dart';
-import 'laporan_page.dart';
+import '../widgets/side_bar.dart';
 
 class PengaturanPage extends StatefulWidget {
   const PengaturanPage({super.key});
@@ -45,7 +42,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
-      drawer: _buildSideBar(context),
+      drawer: const SideBar(),
       appBar: AppBar(
         title: Row(
           children: [
@@ -107,11 +104,19 @@ class _PengaturanPageState extends State<PengaturanPage> {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         currentIndex: 1,
+        onTap: (index) {
+          if (index == 0) Navigator.pushReplacementNamed(context, '/dashboard');
+          if (index == 2) Navigator.pushReplacementNamed(context, '/transaksi');
+          if (index == 3) Navigator.pushReplacementNamed(context, '/laporan');
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics_outlined), label: ''),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.analytics_outlined),
+            label: '',
+          ),
         ],
       ),
     );
@@ -169,11 +174,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
         Align(
           alignment: Alignment.centerRight,
           child: ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _isEditing = true;
-              });
-            },
+            onPressed: () => setState(() => _isEditing = true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryGreen,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -238,11 +239,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             TextButton(
-              onPressed: () {
-                setState(() {
-                  _isEditing = false;
-                });
-              },
+              onPressed: () => setState(() => _isEditing = false),
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -263,11 +260,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
             ),
             const SizedBox(width: 12),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _isEditing = false;
-                });
-              },
+              onPressed: () => setState(() => _isEditing = false),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryGreen,
                 padding: const EdgeInsets.symmetric(
@@ -407,61 +400,6 @@ class _PengaturanPageState extends State<PengaturanPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSideBar(BuildContext context) {
-  return Drawer(
-    child: Column(
-      children: [
-        DrawerHeader(
-          decoration: const BoxDecoration(color: Colors.white),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/images/logo.jpg',
-                  height: 60,
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.sports_esports, size: 60, color: Colors.green),
-                ),
-                const SizedBox(height: 10),
-                const Text('DFW Menu', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-        ),
-        _buildDrawerItem(Icons.dashboard_outlined, 'Dashboard', () {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
-        }),
-        _buildDrawerItem(Icons.list_alt_outlined, 'Transaksi', () {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TransaksiPage()));
-        }),
-        _buildDrawerItem(Icons.settings_input_component_outlined, 'Operasional', () {}), // Kosongin dulu kalo blm ada
-        _buildDrawerItem(Icons.people_outline, 'Pelanggan', () {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const PelangganPage()));
-        }),
-        _buildDrawerItem(Icons.bar_chart_outlined, 'Laporan', () {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LaporanPage()));
-        }),
-        const Spacer(),
-        _buildDrawerItem(Icons.logout, 'Keluar', () {
-          Navigator.pushReplacementNamed(context, '/'); // Atau '/login' tergantung format ketua lu
-        }),
-        const SizedBox(height: 20),
-      ],
-    ),
-  );
-}
-
-  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: ListTile(
-        leading: Icon(icon, color: Colors.black87),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-        onTap: onTap,
       ),
     );
   }

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
-import 'pelanggan_page.dart';
-import 'laporan_page.dart';
-import 'pengaturan_page.dart';
+import '../widgets/side_bar.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -11,7 +9,7 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
-      drawer: _buildSideBar(context),
+      drawer: const SideBar(),
       appBar: AppBar(
         title: Row(
           children: [
@@ -41,7 +39,6 @@ class DashboardPage extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
@@ -56,14 +53,12 @@ class DashboardPage extends StatelessWidget {
                 _buildStatCard('Dalam Perawatan', '0', Colors.orange),
               ],
             ),
-
             const SizedBox(height: 30),
             const Text(
               'Transaksi Terbaru',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 15),
-
             _buildTransactionItem('Dimas Riyan', 'PS4-01', '2 Jam'),
             _buildTransactionItem('Dimas Riyan', 'PS4-01', '2 Jam'),
           ],
@@ -76,12 +71,9 @@ class DashboardPage extends StatelessWidget {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         onTap: (index) {
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const PengaturanPage()),
-            );
-          }
+          if (index == 1) Navigator.pushNamed(context, '/pengaturan');
+          if (index == 2) Navigator.pushReplacementNamed(context, '/transaksi');
+          if (index == 3) Navigator.pushReplacementNamed(context, '/laporan');
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
@@ -95,73 +87,6 @@ class DashboardPage extends StatelessWidget {
             label: '',
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSideBar(BuildContext context) {
-    return Drawer(
-      child: Column(
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: Colors.white),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset('assets/images/logo.jpg', height: 60),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'DFW Menu',
-                    style: TextStyle(
-                      color: AppColors.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          _buildDrawerItem(Icons.dashboard_outlined, 'Dashboard', () {
-            Navigator.pop(context);
-          }),
-          _buildDrawerItem(Icons.list_alt_outlined, 'Transaksi', () {
-            Navigator.pushNamed(context, '/transaksi');
-          }),
-          _buildDrawerItem(
-            Icons.settings_input_component_outlined,
-            'Operasional',
-            () {},
-          ),
-          _buildDrawerItem(Icons.people_outline, 'Pelanggan', () {
-            Navigator.push(
-              context, 
-              MaterialPageRoute(builder: (context) => const PelangganPage()),
-            );
-          }),
-          _buildDrawerItem(Icons.bar_chart_outlined, 'Laporan', () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const LaporanPage()),
-            );
-          }),
-          const Spacer(),
-          _buildDrawerItem(Icons.logout, 'Keluar', () {
-            Navigator.pushReplacementNamed(context, '/');
-          }),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: ListTile(
-        leading: Icon(icon, color: Colors.black87),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-        onTap: onTap,
       ),
     );
   }

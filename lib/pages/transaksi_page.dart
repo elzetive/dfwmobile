@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
+import '../widgets/side_bar.dart';
 
 class TransaksiPage extends StatelessWidget {
   const TransaksiPage({super.key});
@@ -8,7 +9,7 @@ class TransaksiPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
-      drawer: _buildSideBar(context),
+      drawer: const SideBar(),
       appBar: AppBar(
         title: Row(
           children: [
@@ -120,6 +121,8 @@ class TransaksiPage extends StatelessWidget {
         showUnselectedLabels: false,
         onTap: (index) {
           if (index == 0) Navigator.pushReplacementNamed(context, '/dashboard');
+          if (index == 1) Navigator.pushNamed(context, '/pengaturan');
+          if (index == 3) Navigator.pushReplacementNamed(context, '/laporan');
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
@@ -133,69 +136,6 @@ class TransaksiPage extends StatelessWidget {
             label: '',
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSideBar(BuildContext context) {
-    return Drawer(
-      child: Column(
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: Colors.white),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset('assets/images/logo.jpg', height: 60),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'DFW Menu',
-                    style: TextStyle(
-                      color: AppColors.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          _buildDrawerItem(
-            Icons.dashboard_outlined,
-            'Dashboard',
-            () => Navigator.pushReplacementNamed(context, '/dashboard'),
-          ),
-          _buildDrawerItem(
-            Icons.list_alt_outlined,
-            'Transaksi',
-            () => Navigator.pop(context),
-          ),
-          _buildDrawerItem(
-            Icons.settings_input_component_outlined,
-            'Operasional',
-            () {},
-          ),
-          _buildDrawerItem(Icons.people_outline, 'Pelanggan', () {}),
-          _buildDrawerItem(Icons.bar_chart_outlined, 'Laporan', () {}),
-          const Spacer(),
-          _buildDrawerItem(
-            Icons.logout,
-            'Keluar',
-            () => Navigator.pushReplacementNamed(context, '/'),
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: ListTile(
-        leading: Icon(icon, color: Colors.black87),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-        onTap: onTap,
       ),
     );
   }

@@ -10,7 +10,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  String? selectedRole;
   late TextEditingController usernameController;
   late TextEditingController passwordController;
 
@@ -40,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     if (username == 'admin' && password == '123') {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/dashboard');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Username atau password salah')),
@@ -58,7 +57,6 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: [
               const SizedBox(height: 50),
-              // Panggil Logo JPG yang sudah didaftarkan di assets
               Image.asset(
                 'assets/images/logo.jpg',
                 height: 150,
@@ -90,22 +88,46 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 40),
 
-              _buildLabel('Masuk Sebagai'),
-              _buildDropdown(),
-
-              const SizedBox(height: 20),
               _buildLabel('Username'),
-              _buildInputField('Masukkan Username', Icons.person, usernameController),
+              _buildInputField(
+                'Masukkan Username',
+                Icons.person_outline,
+                usernameController,
+              ),
 
               const SizedBox(height: 20),
               _buildLabel('Password'),
-              _buildInputField('Masukkan Password', Icons.lock, passwordController, isPass: true),
+              _buildInputField(
+                'Masukkan Password',
+                Icons.lock_outline,
+                passwordController,
+                isPass: true,
+              ),
 
               const SizedBox(height: 50),
-              CustomButton(
-                text: 'Login',
-                onPressed: _handleLogin,
+              CustomButton(text: 'Login', onPressed: _handleLogin),
+              const SizedBox(height: 25),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Belum punya akun? "),
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () => Navigator.pushNamed(context, '/register'),
+                      child: const Text(
+                        "Daftar Sekarang",
+                        style: TextStyle(
+                          color: AppColors.primaryGreen,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 30),
             ],
           ),
         ),
@@ -119,41 +141,28 @@ class _LoginPageState extends State<LoginPage> {
     child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
   );
 
-  Widget _buildDropdown() => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: Colors.grey.shade300),
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        isExpanded: true,
-        value: selectedRole,
-        hint: const Text('Pilih'),
-        items: [
-          'Admin',
-          'Kasir',
-        ].map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
-        onChanged: (val) => setState(() => selectedRole = val),
+  Widget _buildInputField(
+    String hint,
+    IconData icon,
+    TextEditingController controller, {
+    bool isPass = false,
+  }) => TextField(
+    controller: controller,
+    obscureText: isPass,
+    decoration: InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon, color: Colors.black54),
+      filled: true,
+      fillColor: Colors.white,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.grey.shade300),
       ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
     ),
   );
-
-  Widget _buildInputField(String hint, IconData icon, TextEditingController controller, {bool isPass = false}) =>
-      TextField(
-        controller: controller,
-        obscureText: isPass,
-        decoration: InputDecoration(
-          hintText: hint,
-          prefixIcon: Icon(icon, color: Colors.black54),
-          filled: true,
-          fillColor: Colors.white,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
 }

@@ -13,7 +13,7 @@ class _HomePageState extends State<HomePage> {
 
   void _onNavTapped(int index) {
     setState(() => _selectedIndex = index);
-    
+
     // Handle navigation based on index
     switch (index) {
       case 0:
@@ -74,10 +74,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 10),
               const Text(
                 'Kelola data peralatan Anda',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
               const SizedBox(height: 40),
               _buildMenuCard(
@@ -106,22 +103,13 @@ class _HomePageState extends State<HomePage> {
         onTap: _onNavTapped,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: 'Daftar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Daftar'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
@@ -147,14 +135,10 @@ class _HomePageState extends State<HomePage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primaryGreen.withOpacity(0.1),
+                color: AppColors.primaryGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                icon,
-                size: 32,
-                color: AppColors.primaryGreen,
-              ),
+              child: Icon(icon, size: 32, color: AppColors.primaryGreen),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -172,10 +156,7 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black54,
-                    ),
+                    style: const TextStyle(fontSize: 14, color: Colors.black54),
                   ),
                 ],
               ),

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
-import 'detail_laporan_page.dart';
-import 'dashboard_page.dart';
-import 'transaksi_page.dart';
-import 'pelanggan_page.dart';
+import '../widgets/side_bar.dart';
 
 class LaporanPage extends StatelessWidget {
   const LaporanPage({super.key});
@@ -12,14 +9,17 @@ class LaporanPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
-      drawer: _buildSideBar(context),
+      drawer: const SideBar(),
       appBar: AppBar(
         title: Row(
           children: [
             Image.asset(
               'assets/images/logo.jpg',
               height: 30,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.sports_esports, color: AppColors.primaryGreen),
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.sports_esports,
+                color: AppColors.primaryGreen,
+              ),
             ),
             const SizedBox(width: 10),
             const Text(
@@ -65,7 +65,9 @@ class LaporanPage extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     decoration: const BoxDecoration(
                       color: AppColors.primaryGreen,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(10),
+                      ),
                     ),
                     child: const Text(
                       'Laporan Harian',
@@ -80,7 +82,11 @@ class LaporanPage extends StatelessWidget {
                   const Divider(height: 1, color: Color(0xFFEEEEEE)),
                   _buildLaporanItem('Kamis, 11 Desember 2025', context),
                   const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                  _buildLaporanItem('Rabu, 10 Desember 2025', context, isLast: true),
+                  _buildLaporanItem(
+                    'Rabu, 10 Desember 2025',
+                    context,
+                    isLast: true,
+                  ),
                 ],
               ),
             ),
@@ -94,9 +100,17 @@ class LaporanPage extends StatelessWidget {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         currentIndex: 3,
+        onTap: (index) {
+          if (index == 0) Navigator.pushReplacementNamed(context, '/dashboard');
+          if (index == 1) Navigator.pushNamed(context, '/pengaturan');
+          if (index == 2) Navigator.pushReplacementNamed(context, '/transaksi');
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: ''),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_outlined),
+            label: '',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.analytics), label: ''),
         ],
@@ -104,14 +118,13 @@ class LaporanPage extends StatelessWidget {
     );
   }
 
-  Widget _buildLaporanItem(String tanggal, BuildContext context, {bool isLast = false}) {
+  Widget _buildLaporanItem(
+    String tanggal,
+    BuildContext context, {
+    bool isLast = false,
+  }) {
     return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const DetailLaporanPage()),
-        );
-      },
+      onTap: () => Navigator.pushNamed(context, '/detail-laporan'),
       borderRadius: BorderRadius.vertical(
         bottom: Radius.circular(isLast ? 10 : 0),
       ),
@@ -131,61 +144,6 @@ class LaporanPage extends StatelessWidget {
             const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSideBar(BuildContext context) {
-  return Drawer(
-    child: Column(
-      children: [
-        DrawerHeader(
-          decoration: const BoxDecoration(color: Colors.white),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/images/logo.jpg',
-                  height: 60,
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.sports_esports, size: 60, color: Colors.green),
-                ),
-                const SizedBox(height: 10),
-                const Text('DFW Menu', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-        ),
-        _buildDrawerItem(Icons.dashboard_outlined, 'Dashboard', () {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
-        }),
-        _buildDrawerItem(Icons.list_alt_outlined, 'Transaksi', () {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TransaksiPage()));
-        }),
-        _buildDrawerItem(Icons.settings_input_component_outlined, 'Operasional', () {}), // Kosongin dulu kalo blm ada
-        _buildDrawerItem(Icons.people_outline, 'Pelanggan', () {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const PelangganPage()));
-        }),
-        _buildDrawerItem(Icons.bar_chart_outlined, 'Laporan', () {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LaporanPage()));
-        }),
-        const Spacer(),
-        _buildDrawerItem(Icons.logout, 'Keluar', () {
-          Navigator.pushReplacementNamed(context, '/'); // Atau '/login' tergantung format ketua lu
-        }),
-        const SizedBox(height: 20),
-      ],
-    ),
-  );
-}
-
-  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: ListTile(
-        leading: Icon(icon, color: Colors.black87),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-        onTap: onTap,
       ),
     );
   }
