@@ -35,16 +35,16 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
     }
 
     if (selectedTipe == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon pilih Tipe Konsol')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Mohon pilih Tipe Konsol')));
       return;
     }
 
     if (selectedKondisi == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon pilih Kondisi Unit')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Mohon pilih Kondisi Unit')));
       return;
     }
 
@@ -56,7 +56,9 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
     }
 
     // Save logic here
-    debugPrint("Konsol baru: $namaUnitController.text, Tipe: $selectedTipe, Kondisi: $selectedKondisi, Status: $selectedStatus");
+    debugPrint(
+      "Konsol baru: $namaUnitController.text, Tipe: $selectedTipe, Kondisi: $selectedKondisi, Status: $selectedStatus",
+    );
     Navigator.pop(context);
   }
 
@@ -72,7 +74,7 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
           onPressed: () {},
         ),
         title: Image.asset(
-          'assets/images/logo.jpg',
+          'assets/images/logo.png',
           height: 35,
           errorBuilder: (context, error, stackTrace) {
             return const Text(
@@ -207,7 +209,10 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
             borderSide: BorderSide(color: Colors.grey.shade300),
           ),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
         ),
       );
 
@@ -216,24 +221,23 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
     required String? value,
     required List<String> items,
     required Function(String?) onChanged,
-  }) =>
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            isExpanded: true,
-            value: value,
-            hint: Text(hint),
-            items: items
-                .map((val) => DropdownMenuItem(value: val, child: Text(val)))
-                .toList(),
-            onChanged: onChanged,
-          ),
-        ),
-      );
+  }) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border.all(color: Colors.grey.shade300),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        isExpanded: true,
+        value: value,
+        hint: Text(hint),
+        items: items
+            .map((val) => DropdownMenuItem(value: val, child: Text(val)))
+            .toList(),
+        onChanged: onChanged,
+      ),
+    ),
+  );
 }

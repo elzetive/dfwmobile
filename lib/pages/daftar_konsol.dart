@@ -13,21 +13,9 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
 
   // Sample data konsol
   final List<Map<String, String>> konsolList = [
-    {
-      'title': 'PS4 - 01',
-      'tipe': 'PS4-01',
-      'kondisi': 'Baik',
-    },
-    {
-      'title': 'PS4 - 01',
-      'tipe': 'PS4-01',
-      'kondisi': 'Baik',
-    },
-    {
-      'title': 'PS4 - 01',
-      'tipe': 'PS4-01',
-      'kondisi': 'Baik',
-    },
+    {'title': 'PS4 - 01', 'tipe': 'PS4-01', 'kondisi': 'Baik'},
+    {'title': 'PS4 - 01', 'tipe': 'PS4-01', 'kondisi': 'Baik'},
+    {'title': 'PS4 - 01', 'tipe': 'PS4-01', 'kondisi': 'Baik'},
   ];
 
   void _onNavTapped(int index) {
@@ -61,7 +49,7 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
           onPressed: () {},
         ),
         title: Image.asset(
-          'assets/images/logo.jpg',
+          'assets/images/logo.png',
           height: 35,
           errorBuilder: (context, error, stackTrace) {
             return const Text(
@@ -126,22 +114,13 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
         onTap: _onNavTapped,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: 'Daftar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Daftar'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
@@ -194,18 +173,12 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
             const SizedBox(height: 12),
             Text(
               'Tipe: ${konsol['tipe']}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.darkGrey,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
             ),
             const SizedBox(height: 4),
             Text(
               'Kondisi: ${konsol['kondisi']}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.darkGrey,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
             ),
             const SizedBox(height: 16),
             Row(

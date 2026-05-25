@@ -64,7 +64,7 @@ class _DaftarTVPageState extends State<DaftarTVPage> {
           onPressed: () {},
         ),
         title: Image.asset(
-          'assets/images/logo.jpg',
+          'assets/images/logo.png',
           height: 35,
           errorBuilder: (context, error, stackTrace) {
             return const Text(
@@ -129,22 +129,13 @@ class _DaftarTVPageState extends State<DaftarTVPage> {
         onTap: _onNavTapped,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: 'Daftar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Daftar'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
@@ -197,26 +188,17 @@ class _DaftarTVPageState extends State<DaftarTVPage> {
             const SizedBox(height: 12),
             Text(
               'Nama TV: ${tv['namaTv']}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.darkGrey,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
             ),
             const SizedBox(height: 4),
             Text(
               'Model: ${tv['model']}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.darkGrey,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
             ),
             const SizedBox(height: 4),
             Text(
               'Kondisi: ${tv['kondisi']}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.darkGrey,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
             ),
             const SizedBox(height: 16),
             Row(

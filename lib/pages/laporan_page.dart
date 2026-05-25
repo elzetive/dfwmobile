@@ -14,7 +14,7 @@ class LaporanPage extends StatelessWidget {
         title: Row(
           children: [
             Image.asset(
-              'assets/images/logo.jpg',
+              'assets/images/logo.png',
               height: 30,
               errorBuilder: (context, error, stackTrace) => const Icon(
                 Icons.sports_esports,

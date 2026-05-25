@@ -29,23 +29,23 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
 
   void _handleSimpan() {
     if (namaUnitController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon isi Nama Unit')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Mohon isi Nama Unit')));
       return;
     }
 
     if (selectedStatus == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon pilih Status Unit')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Mohon pilih Status Unit')));
       return;
     }
 
     if (selectedKondisi == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon pilih Kondisi')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Mohon pilih Kondisi')));
       return;
     }
 
@@ -57,14 +57,16 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
     }
 
     if (selectedTV == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon pilih TV Terpasang')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Mohon pilih TV Terpasang')));
       return;
     }
 
     // Save logic here
-    debugPrint("Unit baru: Nama=${namaUnitController.text}, Status=$selectedStatus, Kondisi=$selectedKondisi, Konsol=$selectedKonsol, TV=$selectedTV");
+    debugPrint(
+      "Unit baru: Nama=${namaUnitController.text}, Status=$selectedStatus, Kondisi=$selectedKondisi, Konsol=$selectedKonsol, TV=$selectedTV",
+    );
     Navigator.pop(context);
   }
 
@@ -80,7 +82,7 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
           onPressed: () {},
         ),
         title: Image.asset(
-          'assets/images/logo.jpg',
+          'assets/images/logo.png',
           height: 35,
           errorBuilder: (context, error, stackTrace) {
             return const Text(
@@ -223,7 +225,10 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
             borderSide: BorderSide(color: Colors.grey.shade300),
           ),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
         ),
       );
 
@@ -232,24 +237,23 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
     required String? value,
     required List<String> items,
     required Function(String?) onChanged,
-  }) =>
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            isExpanded: true,
-            value: value,
-            hint: Text(hint),
-            items: items
-                .map((val) => DropdownMenuItem(value: val, child: Text(val)))
-                .toList(),
-            onChanged: onChanged,
-          ),
-        ),
-      );
+  }) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border.all(color: Colors.grey.shade300),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        isExpanded: true,
+        value: value,
+        hint: Text(hint),
+        items: items
+            .map((val) => DropdownMenuItem(value: val, child: Text(val)))
+            .toList(),
+        onChanged: onChanged,
+      ),
+    ),
+  );
 }

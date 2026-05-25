@@ -23,7 +23,7 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
               const SizedBox(height: 40),
               Image.asset(
-                'assets/images/logo.jpg',
+                'assets/images/logo.png',
                 height: 120,
                 errorBuilder: (context, error, stackTrace) => const Icon(
                   Icons.videogame_asset,

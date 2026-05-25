@@ -19,7 +19,7 @@ class SideBar extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset('assets/images/logo.jpg', height: 60),
+                  Image.asset('assets/images/logo.png', height: 60),
                   const SizedBox(height: 10),
                   const Text(
                     'DFW Menu',

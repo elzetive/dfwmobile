@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
           onPressed: () {},
         ),
         title: Image.asset(
-          'assets/images/logo.jpg',
+          'assets/images/logo.png',
           height: 35,
           errorBuilder: (context, error, stackTrace) {
             return const Text(

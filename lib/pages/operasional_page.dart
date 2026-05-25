@@ -29,7 +29,7 @@ class _OperasionalPageState extends State<OperasionalPage> {
 
   void _onNavTapped(int index) {
     setState(() => _selectedIndex = index);
-    
+
     // Handle navigation based on index
     switch (index) {
       case 0:
@@ -59,7 +59,7 @@ class _OperasionalPageState extends State<OperasionalPage> {
           onPressed: () {},
         ),
         title: Image.asset(
-          'assets/images/logo.jpg',
+          'assets/images/logo.png',
           height: 35,
           errorBuilder: (context, error, stackTrace) {
             return const Text(
@@ -185,22 +185,13 @@ class _OperasionalPageState extends State<OperasionalPage> {
         onTap: _onNavTapped,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: 'Daftar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Daftar'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
@@ -253,26 +244,17 @@ class _OperasionalPageState extends State<OperasionalPage> {
             const SizedBox(height: 12),
             Text(
               'Kondisi  : ${unit['kondisi']}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.darkGrey,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
             ),
             const SizedBox(height: 4),
             Text(
               'Konsol ID : ${unit['konsolId']}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.darkGrey,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
             ),
             const SizedBox(height: 4),
             Text(
               'TV ID  : ${unit['tvId']}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.darkGrey,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
             ),
             const SizedBox(height: 16),
             Row(
