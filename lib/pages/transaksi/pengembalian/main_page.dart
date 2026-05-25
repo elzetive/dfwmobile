@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/app_colors.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
 
 class PengembalianPage extends StatelessWidget {
   const PengembalianPage({super.key});
@@ -8,7 +8,6 @@ class PengembalianPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
-      drawer: _buildSideBar(context),
       appBar: AppBar(
         title: const Text(
           'Daftar Transaksi Aktif',
@@ -51,69 +50,6 @@ class PengembalianPage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSideBar(BuildContext context) {
-    return Drawer(
-      child: Column(
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: Colors.white),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset('assets/images/logo.png', height: 60),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'DFW Menu',
-                    style: TextStyle(
-                      color: AppColors.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          _buildDrawerItem(
-            Icons.dashboard_outlined,
-            'Dashboard',
-            () => Navigator.pushReplacementNamed(context, '/dashboard'),
-          ),
-          _buildDrawerItem(
-            Icons.list_alt_outlined,
-            'Transaksi',
-            () => Navigator.pushReplacementNamed(context, '/transaksi'),
-          ),
-          _buildDrawerItem(
-            Icons.settings_input_component_outlined,
-            'Operasional',
-            () {},
-          ),
-          _buildDrawerItem(Icons.people_outline, 'Pelanggan', () {}),
-          _buildDrawerItem(Icons.bar_chart_outlined, 'Laporan', () {}),
-          const Spacer(),
-          _buildDrawerItem(
-            Icons.logout,
-            'Keluar',
-            () => Navigator.pushReplacementNamed(context, '/'),
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: ListTile(
-        leading: Icon(icon, color: Colors.black87),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-        onTap: onTap,
       ),
     );
   }

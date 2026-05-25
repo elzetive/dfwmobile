@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/app_colors.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/widgets/side_bar.dart';
 
 class DaftarTVPage extends StatefulWidget {
   const DaftarTVPage({super.key});
@@ -9,8 +10,6 @@ class DaftarTVPage extends StatefulWidget {
 }
 
 class _DaftarTVPageState extends State<DaftarTVPage> {
-  int _selectedIndex = 2;
-
   final List<Map<String, String>> tvList = [
     {
       'title': 'TV - 01',
@@ -32,35 +31,15 @@ class _DaftarTVPageState extends State<DaftarTVPage> {
     },
   ];
 
-  void _onNavTapped(int index) {
-    setState(() => _selectedIndex = index);
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/home');
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, '/operasional');
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/daftar-konsol');
-        break;
-      case 3:
-        Navigator.pushReplacementNamed(context, '/profile');
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
+      drawer: const SideBar(), // Menggunakan Sidebar global
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 1,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.darkGrey),
-          onPressed: () {},
-        ),
+        iconTheme: const IconThemeData(color: Colors.black),
         title: Image.asset(
           'assets/images/logo.png',
           height: 35,
@@ -121,20 +100,6 @@ class _DaftarTVPageState extends State<DaftarTVPage> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onNavTapped,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Daftar'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
       ),
     );
   }

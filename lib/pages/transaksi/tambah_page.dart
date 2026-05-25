@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/app_colors.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
 
 class TambahTransaksiPage extends StatefulWidget {
   const TambahTransaksiPage({super.key});

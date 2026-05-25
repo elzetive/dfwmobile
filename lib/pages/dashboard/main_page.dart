@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/app_colors.dart';
-import '../../widgets/side_bar.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/widgets/side_bar.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -63,7 +63,7 @@ class DashboardPage extends StatelessWidget {
             ),
             const SizedBox(height: 15),
 
-            // 2. Menu Kartu Navigasi Peralatan (Pindahan dari HomePage)
+            // 2. Menu Kartu Navigasi Peralatan
             _buildMenuCard(
               title: 'Daftar Konsol',
               subtitle: 'Kelola data aset konsol game',
@@ -94,30 +94,6 @@ class DashboardPage extends StatelessWidget {
             _buildTransactionItem('Dimas Riyan', 'PS4-01', '2 Jam'),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primaryGreen,
-        unselectedItemColor: Colors.black,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) {
-          if (index == 1) Navigator.pushNamed(context, '/pengaturan');
-          if (index == 2) Navigator.pushReplacementNamed(context, '/transaksi');
-          if (index == 3) Navigator.pushReplacementNamed(context, '/laporan');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            label: '',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: ''),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics_outlined),
-            label: '',
-          ),
-        ],
       ),
     );
   }
@@ -171,7 +147,6 @@ class DashboardPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                // Di sini aman tanpa const karena nilainya dinamis
                 color: AppColors.primaryGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/app_colors.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/widgets/side_bar.dart';
 
 class OperasionalPage extends StatefulWidget {
   const OperasionalPage({super.key});
@@ -9,8 +10,6 @@ class OperasionalPage extends StatefulWidget {
 }
 
 class _OperasionalPageState extends State<OperasionalPage> {
-  int _selectedIndex = 1;
-
   final List<Map<String, String>> unitList = [
     {
       'title': 'Unit 4 - PS 4',
@@ -26,49 +25,32 @@ class _OperasionalPageState extends State<OperasionalPage> {
     },
   ];
 
-  void _onNavTapped(int index) {
-    setState(() => _selectedIndex = index);
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/home');
-        break;
-      case 1:
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/daftar-konsol');
-        break;
-      case 3:
-        Navigator.pushReplacementNamed(context, '/profile');
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
+      drawer: const SideBar(), // Menambahkan Sidebar di halaman operasional
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 1,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.darkGrey),
-          onPressed: () {},
-        ),
-        title: Image.asset(
-          'assets/images/logo.png',
-          height: 35,
-          errorBuilder: (context, error, stackTrace) {
-            return const Text(
+        iconTheme: const IconThemeData(color: Colors.black),
+        // PERBAIKAN: Sudah dibuat Row pakai Logo + Teks agar konsisten dengan halaman lain
+        title: Row(
+          children: [
+            Image.asset('assets/images/logo.png', height: 30),
+            const SizedBox(width: 10),
+            const Text(
               'DFW Playstation',
               style: TextStyle(
                 color: AppColors.primaryGreen,
                 fontWeight: FontWeight.bold,
+                fontSize: 18,
               ),
-            );
-          },
+            ),
+          ],
         ),
-        centerTitle: true,
+        centerTitle:
+            false, // Diubah ke false agar teks berbaris rapi setelah logo di kiri
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -176,20 +158,6 @@ class _OperasionalPageState extends State<OperasionalPage> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onNavTapped,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Daftar'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
       ),
     );
   }

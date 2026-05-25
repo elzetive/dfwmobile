@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
 
 class TambahPelangganPage extends StatelessWidget {
   const TambahPelangganPage({super.key});
@@ -63,11 +63,22 @@ class TambahPelangganPage extends StatelessWidget {
                       Navigator.pop(context);
                     },
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       backgroundColor: Colors.grey.shade200,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                    child: const Text('Batal', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Batal',
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
@@ -76,11 +87,22 @@ class TambahPelangganPage extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryGreen,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       elevation: 0,
                     ),
-                    child: const Text('Simpan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Simpan',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -94,18 +116,29 @@ class TambahPelangganPage extends StatelessWidget {
   Widget _buildInputLabel(String label) {
     return Text(
       label,
-      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87),
+      style: const TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+        color: Colors.black87,
+      ),
     );
   }
 
-  Widget _buildTextField(String hint, {bool isNumber = false, int maxLines = 1}) {
+  Widget _buildTextField(
+    String hint, {
+    bool isNumber = false,
+    int maxLines = 1,
+  }) {
     return TextField(
       keyboardType: isNumber ? TextInputType.phone : TextInputType.text,
       maxLines: maxLines,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.grey.shade300),

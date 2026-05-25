@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/app_colors.dart';
-import '../../widgets/custom_button.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/widgets/custom_button.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -123,6 +123,7 @@ class _RegisterPageState extends State<RegisterPage> {
         obscureText: isPass,
         decoration: InputDecoration(
           hintText: hint,
+          prefixIcon: Icon(icon, color: Colors.black54),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 15,
             vertical: 15,

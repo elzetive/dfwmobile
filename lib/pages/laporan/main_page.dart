@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
-import '../widgets/side_bar.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/widgets/side_bar.dart';
 
 class LaporanPage extends StatelessWidget {
   const LaporanPage({super.key});
@@ -92,28 +92,6 @@ class LaporanPage extends StatelessWidget {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primaryGreen,
-        unselectedItemColor: Colors.black,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        currentIndex: 3,
-        onTap: (index) {
-          if (index == 0) Navigator.pushReplacementNamed(context, '/dashboard');
-          if (index == 1) Navigator.pushNamed(context, '/pengaturan');
-          if (index == 2) Navigator.pushReplacementNamed(context, '/transaksi');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            label: '',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: ''),
-        ],
       ),
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
 
 class TambahUnitPage extends StatefulWidget {
   const TambahUnitPage({super.key});
@@ -63,7 +63,6 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
       return;
     }
 
-    // Save logic here
     debugPrint(
       "Unit baru: Nama=${namaUnitController.text}, Status=$selectedStatus, Kondisi=$selectedKondisi, Konsol=$selectedKonsol, TV=$selectedTV",
     );

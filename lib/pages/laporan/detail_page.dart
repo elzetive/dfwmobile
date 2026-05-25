@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
 
 class DetailLaporanPage extends StatelessWidget {
   const DetailLaporanPage({super.key});
@@ -29,14 +29,21 @@ class DetailLaporanPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primaryGreen,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
                     'Jumat, 12 Desember 2025',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
                 ElevatedButton(
@@ -45,13 +52,22 @@ class DetailLaporanPage extends StatelessWidget {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryGreen,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     elevation: 0,
                   ),
                   child: const Text(
                     'Kembali',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ],
@@ -59,9 +75,7 @@ class DetailLaporanPage extends StatelessWidget {
             const SizedBox(height: 20),
             Row(
               children: [
-                Expanded(
-                  child: _buildSummaryCard('Total Transaksi', '6'),
-                ),
+                Expanded(child: _buildSummaryCard('Total Transaksi', '6')),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildSummaryCard('Total Pendapatan', 'Rp 492.000'),
@@ -123,7 +137,11 @@ class DetailLaporanPage extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -172,7 +190,11 @@ class DetailLaporanPage extends StatelessWidget {
             children: [
               const Text(
                 'Bukti Transaksi',
-                style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               adaBukti
                   ? Container(
@@ -185,7 +207,13 @@ class DetailLaporanPage extends StatelessWidget {
                       ),
                       child: const Icon(Icons.receipt_long, color: Colors.grey),
                     )
-                  : const Text('-', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+                  : const Text(
+                      '-',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
             ],
           ),
         ],
@@ -193,13 +221,22 @@ class DetailLaporanPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {bool isBold = false, bool isTotal = false}) {
+  Widget _buildDetailRow(
+    String label,
+    String value, {
+    bool isBold = false,
+    bool isTotal = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         Text(
           value,

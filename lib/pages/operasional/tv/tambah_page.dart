@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/app_colors.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
 
 class TambahTVPage extends StatefulWidget {
   const TambahTVPage({super.key});
@@ -67,7 +67,6 @@ class _TambahTVPageState extends State<TambahTVPage> {
       return;
     }
 
-    // Save logic here
     debugPrint(
       "TV baru: ID=${idTVController.text}, Nama=${namaTVController.text}, Model=${modelTVController.text}, Kondisi=$selectedKondisi, Status=$selectedStatus",
     );

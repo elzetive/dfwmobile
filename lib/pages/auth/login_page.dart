@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
-import '../widgets/custom_button.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/widgets/custom_button.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
