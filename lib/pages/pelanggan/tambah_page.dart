@@ -1,8 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/services/api_service.dart';
 
-class TambahPelangganPage extends StatelessWidget {
+class TambahPelangganPage extends StatefulWidget {
   const TambahPelangganPage({super.key});
+
+  @override
+  State<TambahPelangganPage> createState() => _TambahPelangganPageState();
+}
+
+class _TambahPelangganPageState extends State<TambahPelangganPage> {
+  final ApiService _apiService = ApiService();
+  final TextEditingController _namaController = TextEditingController();
+  final TextEditingController _teleponController = TextEditingController();
+  final TextEditingController _alamatController = TextEditingController();
+
+  @override
+  void dispose() {
+    _namaController.dispose();
+    _teleponController.dispose();
+    _alamatController.dispose();
+    super.dispose();
+  }
+
+  void _simpanMember() async {
+    if (_namaController.text.trim().isEmpty ||
+        _teleponController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nama dan Nomor Telepon wajib diisi!')),
+      );
+      return;
+    }
+
+    // 1. Kirim data ke API Laravel secara asinkronus
+    bool sukses = await _apiService.tambahPelanggan(
+      _namaController.text,
+      _teleponController.text,
+      _alamatController.text,
+    );
+
+    // 2. Kunci pengaman Async Gap: Pastikan widget masih nempel di layar
+    if (!mounted) return;
+
+    // 3. Eksekusi feedback UI menggunakan BuildContext setelah dipastikan aman
+    if (sukses) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Member Baru Berhasil Terdaftar!'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
+      );
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal menyimpan ke database!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +75,6 @@ class TambahPelangganPage extends StatelessWidget {
         ),
         backgroundColor: Colors.white,
         elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -27,13 +83,6 @@ class TambahPelangganPage extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,32 +94,35 @@ class TambahPelangganPage extends StatelessWidget {
               const SizedBox(height: 24),
               _buildInputLabel('Nama Pelanggan'),
               const SizedBox(height: 8),
-              _buildTextField('Masukkan nama lengkap'),
+              _buildTextField('Masukkan nama lengkap', _namaController),
               const SizedBox(height: 16),
               _buildInputLabel('Nomor Telepon (WhatsApp)'),
               const SizedBox(height: 8),
-              _buildTextField('Contoh: 081234567890', isNumber: true),
+              _buildTextField(
+                'Contoh: 081234567890',
+                _teleponController,
+                isNumber: true,
+              ),
               const SizedBox(height: 16),
               _buildInputLabel('Alamat Lengkap'),
               const SizedBox(height: 8),
-              _buildTextField('Masukkan alamat lengkap pelanggan', maxLines: 4),
+              _buildTextField(
+                'Masukkan alamat lengkap',
+                _alamatController,
+                maxLines: 4,
+              ),
               const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,
                       ),
                       backgroundColor: Colors.grey.shade200,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
                     ),
                     child: const Text(
                       'Batal',
@@ -82,17 +134,12 @@ class TambahPelangganPage extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: _simpanMember,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryGreen,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
                       ),
                       elevation: 0,
                     ),
@@ -113,36 +160,29 @@ class TambahPelangganPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInputLabel(String label) {
-    return Text(
-      label,
-      style: const TextStyle(
-        fontWeight: FontWeight.w600,
-        fontSize: 14,
-        color: Colors.black87,
-      ),
-    );
-  }
+  Widget _buildInputLabel(String label) => Text(
+    label,
+    style: const TextStyle(
+      fontWeight: FontWeight.w600,
+      fontSize: 14,
+      color: Colors.black87,
+    ),
+  );
 
   Widget _buildTextField(
-    String hint, {
+    String hint,
+    TextEditingController controller, {
     bool isNumber = false,
     int maxLines = 1,
   }) {
     return TextField(
+      controller: controller,
       keyboardType: isNumber ? TextInputType.phone : TextInputType.text,
       maxLines: maxLines,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
+        filled: true,
+        fillColor: Colors.grey.shade50,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -151,8 +191,6 @@ class TambahPelangganPage extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.primaryGreen),
         ),
-        filled: true,
-        fillColor: Colors.grey.shade50,
       ),
     );
   }

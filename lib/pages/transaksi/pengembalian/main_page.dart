@@ -1,8 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/services/api_service.dart';
 
-class PengembalianPage extends StatelessWidget {
+class PengembalianPage extends StatefulWidget {
   const PengembalianPage({super.key});
+
+  @override
+  State<PengembalianPage> createState() => _PengembalianPageState();
+}
+
+class _PengembalianPageState extends State<PengembalianPage> {
+  final ApiService _apiService = ApiService();
+  late Future<List<dynamic>> _transaksiAktif;
+
+  @override
+  void initState() {
+    super.initState();
+    _transaksiAktif = _apiService
+        .fetchTransaksiAktif(); // Memuat HANYA data yang Aktif
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _transaksiAktif = _apiService.fetchTransaksiAktif();
+    });
+  }
+
+  void _selesaikan(Map<String, dynamic> tx) async {
+    bool sukses = await _apiService.selesaikanTransaksi(
+      tx['id'].toString(),
+      tx['unit_id'].toString(),
+    );
+
+    if (!mounted) return;
+
+    if (sukses) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Transaksi Selesai & Unit Tersedia!'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
+      );
+      _refreshData(); // Refresh list agar data selesai langsung keluar dari list aktif
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal memproses pengembalian!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,43 +66,65 @@ class PengembalianPage extends StatelessWidget {
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: 3,
-              itemBuilder: (context, index) => _buildActiveCard(),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: 200,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    'Kembali',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+      body: FutureBuilder<List<dynamic>>(
+        future: _transaksiAktif,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final list = snapshot.data ?? [];
+
+          return Column(
+            children: [
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: _refreshData,
+                  color: AppColors.primaryGreen,
+                  child: list.isEmpty
+                      ? ListView(
+                          children: const [
+                            SizedBox(height: 100),
+                            Center(child: Text("Tidak ada transaksi aktif")),
+                          ],
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(20),
+                          itemCount: list.length,
+                          itemBuilder: (context, index) =>
+                              _buildActiveCard(list[index]),
+                        ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 200,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Kembali',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildActiveCard() {
+  Widget _buildActiveCard(Map<String, dynamic> tx) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(15),
@@ -69,9 +139,12 @@ class PengembalianPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Dimas Riyan',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              Text(
+                tx['nama_pelanggan'] ?? 'Anonim',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -94,9 +167,9 @@ class PengembalianPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 5),
-          const Text(
-            'Konsol : PS4-01\nDurasi : 2 Jam\nTipe Sewa : Dibawa Pulang\nTanggal Ambil : 1/12/2025 16.00',
-            style: TextStyle(fontSize: 13, height: 1.4),
+          Text(
+            'Konsol : ${tx['nama_unit'] ?? '-'}\nDurasi : ${tx['durasi_jam']} Jam\nTipe : ${tx['tipe_penyewaan'] ?? '-'}',
+            style: const TextStyle(fontSize: 13, height: 1.4),
           ),
           const SizedBox(height: 10),
           Align(
@@ -104,7 +177,7 @@ class PengembalianPage extends StatelessWidget {
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
-                onTap: () => debugPrint("Proses Pembayaran"),
+                onTap: () => _selesaikan(tx),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 15,

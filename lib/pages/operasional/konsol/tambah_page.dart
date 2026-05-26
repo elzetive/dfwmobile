@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/app_colors.dart';
+import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/services/api_service.dart';
 
 class TambahKonsolPage extends StatefulWidget {
   const TambahKonsolPage({super.key});
@@ -9,56 +10,74 @@ class TambahKonsolPage extends StatefulWidget {
 }
 
 class _TambahKonsolPageState extends State<TambahKonsolPage> {
+  final ApiService _apiService = ApiService();
+  late TextEditingController idController;
   late TextEditingController namaUnitController;
   String? selectedTipe;
-  String? selectedKondisi;
-  String? selectedStatus;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
+    idController = TextEditingController();
     namaUnitController = TextEditingController();
   }
 
   @override
   void dispose() {
+    idController.dispose();
     namaUnitController.dispose();
     super.dispose();
   }
 
-  void _handleSimpan() {
-    if (namaUnitController.text.isEmpty) {
+  void _handleSimpan() async {
+    if (idController.text.trim().isEmpty ||
+        namaUnitController.text.trim().isEmpty ||
+        selectedTipe == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon isi Nama Unit Konsol')),
+        const SnackBar(
+          content: Text('Mohon lengkapi seluruh formulir data konsol!'),
+        ),
       );
       return;
     }
 
-    if (selectedTipe == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mohon pilih Tipe Konsol')));
-      return;
-    }
+    setState(() => _isSaving = true);
 
-    if (selectedKondisi == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mohon pilih Kondisi Unit')));
-      return;
-    }
-
-    if (selectedStatus == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon pilih Status Ketersediaan')),
-      );
-      return;
-    }
-
-    debugPrint(
-      "Konsol baru: $namaUnitController.text, Tipe: $selectedTipe, Kondisi: $selectedKondisi, Status: $selectedStatus",
+    // Mengirimkan 5 argumen sesuai struktur ApiService yang baru
+    bool sukses = await _apiService.tambahKonsol(
+      idController.text.trim(),
+      namaUnitController.text.trim(),
+      selectedTipe!,
+      'Baik', // Argumen ke-4: Kondisi awal otomatis
+      'Tersedia', // Argumen ke-5: Status awal otomatis
     );
-    Navigator.pop(context);
+
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (sukses) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Konsol Baru Berhasil Terdaftar!'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
+      );
+
+      // SOLUSI BLANK SCREEN: Cek tumpukan navigasi web browser terlebih dahulu
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context, true);
+      } else {
+        Navigator.pushReplacementNamed(context, '/daftar-konsol');
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal menyimpan konsol. ID mungkin duplikat!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -68,22 +87,12 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 1,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.darkGrey),
-          onPressed: () {},
-        ),
-        title: Image.asset(
-          'assets/images/logo.png',
-          height: 35,
-          errorBuilder: (context, error, stackTrace) {
-            return const Text(
-              'DFW Playstation',
-              style: TextStyle(
-                color: AppColors.primaryGreen,
-                fontWeight: FontWeight.bold,
-              ),
-            );
-          },
+        title: const Text(
+          'Tambah Konsol Baru',
+          style: TextStyle(
+            color: AppColors.primaryGreen,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
@@ -93,89 +102,75 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Tambah Konsol Baru',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkGrey,
-                ),
-              ),
-              const SizedBox(height: 30),
+              _buildLabel('ID / Kode Unit Konsol'),
+              _buildInputField('Contoh: KSL-03', idController),
+              const SizedBox(height: 24),
               _buildLabel('Nama Unit Konsol'),
-              _buildInputField('Masukkan nama unit', namaUnitController),
+              _buildInputField(
+                'Masukkan nama unit (Contoh: PS3 Super Slim 01)',
+                namaUnitController,
+              ),
               const SizedBox(height: 24),
               _buildLabel('Tipe Konsol'),
               _buildDropdown(
                 hint: 'Pilih Tipe',
                 value: selectedTipe,
-                items: ['PS4', 'PS5', 'Xbox One', 'Nintendo Switch'],
+                items: ['PS3', 'PS4', 'PS5'],
                 onChanged: (val) => setState(() => selectedTipe = val),
               ),
-              const SizedBox(height: 24),
-              _buildLabel('Kondisi Unit'),
-              _buildDropdown(
-                hint: 'Pilih Kondisi',
-                value: selectedKondisi,
-                items: ['Baik', 'Rusak', 'Dalam Perbaikan'],
-                onChanged: (val) => setState(() => selectedKondisi = val),
-              ),
-              const SizedBox(height: 24),
-              _buildLabel('Status Ketersediaan'),
-              _buildDropdown(
-                hint: 'Pilih Status',
-                value: selectedStatus,
-                items: ['Tersedia', 'Tidak Tersedia', 'Maintenance'],
-                onChanged: (val) => setState(() => selectedStatus = val),
-              ),
-              const SizedBox(height: 60),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade300,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+              const SizedBox(height: 50),
+              _isSaving
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryGreen,
                       ),
-                      child: const Text(
-                        'Batal',
-                        style: TextStyle(
-                          color: AppColors.darkGrey,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              } else {
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  '/daftar-konsol',
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey.shade300,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: const Text(
+                              'Batal',
+                              style: TextStyle(
+                                color: AppColors.darkGrey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _handleSimpan,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryGreen,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: const Text(
+                              'Simpan',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _handleSimpan,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGreen,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text(
-                        'Simpan',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -183,9 +178,8 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
     );
   }
 
-  Widget _buildLabel(String text) => Container(
-    alignment: Alignment.centerLeft,
-    margin: const EdgeInsets.only(bottom: 12),
+  Widget _buildLabel(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
     child: Text(
       text,
       style: const TextStyle(
@@ -207,10 +201,9 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
             borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide(color: Colors.grey.shade300),
           ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 14,
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: AppColors.primaryGreen),
           ),
         ),
       );

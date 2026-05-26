@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/services/api_service.dart';
 
 class TambahUnitPage extends StatefulWidget {
   const TambahUnitPage({super.key});
@@ -9,16 +10,33 @@ class TambahUnitPage extends StatefulWidget {
 }
 
 class _TambahUnitPageState extends State<TambahUnitPage> {
+  final ApiService _apiService = ApiService();
   late TextEditingController namaUnitController;
-  String? selectedStatus;
-  String? selectedKondisi;
-  String? selectedKonsol;
-  String? selectedTV;
+
+  String? selectedKonsolId;
+  String? selectedTVId;
+
+  List<dynamic> _konsols = [];
+  List<dynamic> _tvs = [];
+  bool _isLoading = true;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     namaUnitController = TextEditingController();
+    _loadRelations();
+  }
+
+  void _loadRelations() async {
+    final k = await _apiService.fetchKonsolData();
+    final t = await _apiService.fetchTvData();
+    if (!mounted) return;
+    setState(() {
+      _konsols = k;
+      _tvs = t;
+      _isLoading = false;
+    });
   }
 
   @override
@@ -27,46 +45,46 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
     super.dispose();
   }
 
-  void _handleSimpan() {
-    if (namaUnitController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mohon isi Nama Unit')));
-      return;
-    }
-
-    if (selectedStatus == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mohon pilih Status Unit')));
-      return;
-    }
-
-    if (selectedKondisi == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mohon pilih Kondisi')));
-      return;
-    }
-
-    if (selectedKonsol == null) {
+  void _handleSimpan() async {
+    if (namaUnitController.text.trim().isEmpty ||
+        selectedKonsolId == null ||
+        selectedTVId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon pilih Konsol Terpasang')),
+        const SnackBar(
+          content: Text('Mohon isi nama unit dan pasangkan Konsol serta TV!'),
+        ),
       );
       return;
     }
 
-    if (selectedTV == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mohon pilih TV Terpasang')));
-      return;
-    }
-
-    debugPrint(
-      "Unit baru: Nama=${namaUnitController.text}, Status=$selectedStatus, Kondisi=$selectedKondisi, Konsol=$selectedKonsol, TV=$selectedTV",
+    setState(() => _isSaving = true);
+    bool sukses = await _apiService.tambahUnit(
+      namaUnitController.text.trim(),
+      'Tersedia',
+      'Baik',
+      selectedKonsolId!,
+      selectedTVId!,
     );
-    Navigator.pop(context);
+
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (sukses) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unit Kombinasi Play Berhasil Ditambahkan!'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
+      );
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal menyimpan Kombinasi Unit Play!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -76,132 +94,130 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 1,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.darkGrey),
-          onPressed: () {},
-        ),
-        title: Image.asset(
-          'assets/images/logo.png',
-          height: 35,
-          errorBuilder: (context, error, stackTrace) {
-            return const Text(
-              'DFW Playstation',
-              style: TextStyle(
-                color: AppColors.primaryGreen,
-                fontWeight: FontWeight.bold,
-              ),
-            );
-          },
+        title: const Text(
+          'Tambah Unit Baru',
+          style: TextStyle(
+            color: AppColors.primaryGreen,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Tambah Unit Play',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkGrey,
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryGreen),
+            )
+          : SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Tambah Unit Play',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    _buildLabel('Nama Tempat/Unit Play'),
+                    _buildInputField(
+                      'Contoh: VIP Room - Unit 5',
+                      namaUnitController,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildLabel('Pilih Konsol Terpasang'),
+                    _buildDropdown(
+                      hint: 'Pilih Hardware Konsol',
+                      value: selectedKonsolId,
+                      items: _konsols
+                          .map(
+                            (k) => DropdownMenuItem<String>(
+                              value: k['id'].toString(),
+                              child: Text('${k['id']} - ${k['nama_unit']}'),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (val) =>
+                          setState(() => selectedKonsolId = val),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildLabel('Pilih TV Terpasang'),
+                    _buildDropdown(
+                      hint: 'Pilih Hardware TV',
+                      value: selectedTVId,
+                      items: _tvs
+                          .map(
+                            (t) => DropdownMenuItem<String>(
+                              value: t['id'].toString(),
+                              child: Text('${t['id']} - ${t['nama_tv']}'),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (val) => setState(() => selectedTVId = val),
+                    ),
+                    const SizedBox(height: 60),
+                    _isSaving
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primaryGreen,
+                            ),
+                          )
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey.shade300,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Batal',
+                                    style: TextStyle(
+                                      color: AppColors.darkGrey,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: _handleSimpan,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryGreen,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Simpan',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 30),
-              _buildLabel('Nama Unit'),
-              _buildInputField('Masukkan nama unit', namaUnitController),
-              const SizedBox(height: 24),
-              _buildLabel('Status Unit'),
-              _buildDropdown(
-                hint: 'Tersedia',
-                value: selectedStatus,
-                items: ['Tersedia', 'Tidak Tersedia', 'Maintenance'],
-                onChanged: (val) => setState(() => selectedStatus = val),
-              ),
-              const SizedBox(height: 24),
-              _buildLabel('Kondisi'),
-              _buildDropdown(
-                hint: 'Baik',
-                value: selectedKondisi,
-                items: ['Baik', 'Rusak', 'Dalam Perbaikan'],
-                onChanged: (val) => setState(() => selectedKondisi = val),
-              ),
-              const SizedBox(height: 24),
-              _buildLabel('Konsol Terpasang'),
-              _buildDropdown(
-                hint: 'Pilih Konsol',
-                value: selectedKonsol,
-                items: ['PS4-01', 'PS4-02', 'PS5-01', 'Xbox-01'],
-                onChanged: (val) => setState(() => selectedKonsol = val),
-              ),
-              const SizedBox(height: 24),
-              _buildLabel('TV Terpasang'),
-              _buildDropdown(
-                hint: 'Pilih TV',
-                value: selectedTV,
-                items: ['TV-01', 'TV-02', 'TV-03', 'TV-04'],
-                onChanged: (val) => setState(() => selectedTV = val),
-              ),
-              const SizedBox(height: 60),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade300,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text(
-                        'Batal',
-                        style: TextStyle(
-                          color: AppColors.darkGrey,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _handleSimpan,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGreen,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text(
-                        'Simpan',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
-  Widget _buildLabel(String text) => Container(
-    alignment: Alignment.centerLeft,
-    margin: const EdgeInsets.only(bottom: 12),
+  Widget _buildLabel(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
     child: Text(
       text,
       style: const TextStyle(
@@ -211,7 +227,6 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
       ),
     ),
   );
-
   Widget _buildInputField(String hint, TextEditingController controller) =>
       TextField(
         controller: controller,
@@ -224,17 +239,12 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
             borderSide: BorderSide(color: Colors.grey.shade300),
           ),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 14,
-          ),
         ),
       );
-
   Widget _buildDropdown({
     required String hint,
     required String? value,
-    required List<String> items,
+    required List<DropdownMenuItem<String>> items,
     required Function(String?) onChanged,
   }) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -248,9 +258,7 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
         isExpanded: true,
         value: value,
         hint: Text(hint),
-        items: items
-            .map((val) => DropdownMenuItem(value: val, child: Text(val)))
-            .toList(),
+        items: items,
         onChanged: onChanged,
       ),
     ),

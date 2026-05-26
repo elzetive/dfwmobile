@@ -1,25 +1,17 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart'; // Ditambahkan untuk debugPrint
 import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl = 'http://localhost:8000/api';
 
+  // ==================== DASHBOARD & PELANGGAN ====================
   Future<Map<String, dynamic>> fetchDashboardData() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/dashboard-data'));
+    return _getMap('$baseUrl/dashboard-data');
+  }
 
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception(
-          'Server Laravel merespon dengan kode: ${response.statusCode}',
-        );
-      }
-    } catch (e) {
-      throw Exception(
-        'Gagal terhubung ke Laravel. Pastikan "php artisan serve" menyala. Error: $e',
-      );
-    }
+  Future<List<dynamic>> fetchPelangganData() async {
+    return _getList('$baseUrl/pelanggan');
   }
 
   Future<bool> tambahPelanggan(
@@ -27,17 +19,207 @@ class ApiService {
     String telepon,
     String alamat,
   ) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/pelanggan'),
-        body: {'nama_pelanggan': nama, 'telepon': telepon, 'alamat': alamat},
-      );
+    return _post('$baseUrl/pelanggan', {
+      'nama_pelanggan': nama,
+      'telepon': telepon,
+      'alamat': alamat,
+    }, 201);
+  }
 
-      if (response.statusCode == 201) {
-        return true;
-      }
-      return false;
+  // ==================== INVENTARIS & OPERASIONAL ====================
+  Future<List<dynamic>> fetchKonsolData() async {
+    return _getList('$baseUrl/konsol');
+  }
+
+  Future<List<dynamic>> fetchTvData() async {
+    return _getList('$baseUrl/tv');
+  }
+
+  Future<List<dynamic>> fetchUnitData() async {
+    return _getList('$baseUrl/unit');
+  }
+
+  Future<bool> tambahKonsol(
+    String id, // Pastikan parameter id ini ada
+    String nama,
+    String tipe,
+    String kondisi,
+    String status,
+  ) async {
+    return _post('$baseUrl/konsol', {
+      'id': id,
+      'nama_unit': nama,
+      'tipe': tipe,
+      'kondisi': kondisi,
+      'status': status,
+    }, 201);
+  }
+
+  Future<bool> tambahTv(
+    String idTv,
+    String nama,
+    String model,
+    String kondisi,
+    String status,
+  ) async {
+    return _post('$baseUrl/tv', {
+      'id_tv_manual': idTv,
+      'nama_tv': nama,
+      'model': model,
+      'kondisi': kondisi,
+      'status': status,
+    }, 201);
+  }
+
+  Future<bool> tambahUnit(
+    String nama,
+    String status,
+    String kondisi,
+    String konsolId,
+    String tvId,
+  ) async {
+    return _post('$baseUrl/unit', {
+      'nama_unit': nama,
+      'status': status,
+      'kondisi': kondisi,
+      'konsol_id': konsolId,
+      'tv_id': tvId,
+    }, 201);
+  }
+
+  // ==================== TRANSAKSI & PENGEMBALIAN ====================
+  // MENAMPILKAN SEMUA DATA (Untuk Riwayat di Main Page)
+  Future<List<dynamic>> fetchSemuaTransaksi() async {
+    return _getList('$baseUrl/transaksi');
+  }
+
+  // MENAMPILKAN HANYA YANG AKTIF (Untuk Halaman Pengembalian)
+  Future<List<dynamic>> fetchTransaksiAktif() async {
+    return _getList('$baseUrl/transaksi/aktif');
+  }
+
+  Future<bool> tambahTransaksi(
+    String pelangganId,
+    String unitId,
+    String tipe,
+    String durasi,
+    String total,
+  ) async {
+    return _post('$baseUrl/transaksi', {
+      'pelanggan_id': pelangganId,
+      'unit_id': unitId,
+      'tipe_penyewaan': tipe,
+      'durasi_jam': durasi,
+      'total_harga': total,
+      'status': 'Aktif',
+    }, 201);
+  }
+
+  Future<bool> selesaikanTransaksi(String transaksiId, String unitId) async {
+    return _post('$baseUrl/transaksi/selesai', {
+      'transaksi_id': transaksiId,
+      'unit_id': unitId,
+    }, 200);
+  }
+
+  // ==================== LAPORAN ====================
+  Future<Map<String, dynamic>> fetchLaporanData() async {
+    return _getMap('$baseUrl/laporan');
+  }
+
+  // ==================== AUTHENTICATION ====================
+  Future<Map<String, dynamic>> register(
+    String nama,
+    String email,
+    String username,
+    String password,
+  ) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/register'),
+        headers: {'Accept': 'application/json'},
+        body: {
+          'name': nama,
+          'email': email,
+          'username': username,
+          'password': password,
+        },
+      );
+      return json.decode(res.body);
     } catch (e) {
+      debugPrint("Error register: $e");
+      return {
+        'success': false,
+        'message': 'Gagal terhubung ke server backend: $e',
+      };
+    }
+  }
+
+  // LOGIN MENDUKUNG USERNAME ATAU EMAIL SECARA DINAMIS
+  Future<Map<String, dynamic>> login(String loginInput, String password) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/login'),
+        headers: {'Accept': 'application/json'},
+        body: {
+          'login_input':
+              loginInput, // Menampung username atau email dari textfield
+          'password': password,
+        },
+      );
+      return json.decode(res.body);
+    } catch (e) {
+      debugPrint("Error login: $e");
+      return {
+        'success': false,
+        'message': 'Gagal terhubung ke server backend: $e',
+      };
+    }
+  }
+
+  // ==================== HELPER METHODS ====================
+  Future<Map<String, dynamic>> _getMap(String url) async {
+    try {
+      final res = await http.get(Uri.parse(url));
+      if (res.statusCode == 200) {
+        return json.decode(res.body);
+      }
+      return {};
+    } catch (e) {
+      debugPrint("Error _getMap: $e");
+      return {};
+    }
+  }
+
+  Future<List<dynamic>> _getList(String url) async {
+    try {
+      final res = await http.get(Uri.parse(url));
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+        return data['data'] is List ? data['data'] : [];
+      }
+      return [];
+    } catch (e) {
+      debugPrint("Error _getList: $e");
+      return [];
+    }
+  }
+
+  Future<bool> _post(
+    String url,
+    Map<String, String> body,
+    int successCode,
+  ) async {
+    try {
+      final res = await http.post(Uri.parse(url), body: body);
+      if (res.statusCode != successCode) {
+        debugPrint(
+          "Gagal POST ke $url. Status: ${res.statusCode}. Res: ${res.body}",
+        );
+      }
+      return res.statusCode == successCode;
+    } catch (e) {
+      debugPrint("Error _post: $e");
       return false;
     }
   }

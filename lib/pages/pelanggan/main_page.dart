@@ -2,9 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
 import 'package:dfw_playstation/widgets/custom_button.dart';
 import 'package:dfw_playstation/widgets/side_bar.dart';
+import 'package:dfw_playstation/services/api_service.dart';
 
-class PelangganPage extends StatelessWidget {
+class PelangganPage extends StatefulWidget {
   const PelangganPage({super.key});
+
+  @override
+  State<PelangganPage> createState() => _PelangganPageState();
+}
+
+class _PelangganPageState extends State<PelangganPage> {
+  final ApiService _apiService = ApiService();
+  late Future<List<dynamic>> _pelangganData;
+
+  @override
+  void initState() {
+    super.initState();
+    _pelangganData = _apiService.fetchPelangganData();
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _pelangganData = _apiService.fetchPelangganData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,64 +58,156 @@ class PelangganPage extends StatelessWidget {
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Daftar Pelanggan',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            CustomButton(
-              text: '+ Tambah Pelanggan Baru',
-              onPressed: () =>
-                  Navigator.pushNamed(context, '/tambah-pelanggan'),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    'Total Pelanggan',
-                    '2',
-                    AppColors.primaryGreen,
-                  ),
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        color: AppColors.primaryGreen,
+        child: FutureBuilder<List<dynamic>>(
+          future: _pelangganData,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(color: AppColors.primaryGreen),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    const Center(
+                      child: Text(
+                        'Gagal mengambil data pelanggan riil.',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        '${snapshot.error}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGreen,
+                      ),
+                      onPressed: _refreshData,
+                      child: const Text(
+                        'Coba Lagi',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _buildStatCard(
-                    'Pelanggan Aktif',
-                    '1',
-                    AppColors.accentOrange,
+              );
+            }
+
+            final listPelanggan = snapshot.data ?? [];
+
+            int totalPelanggan = listPelanggan.length;
+            int pelangganAktif = listPelanggan
+                .where((p) => p['status'] == 'Aktif')
+                .length;
+
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Daftar Pelanggan',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-            const Text(
-              'Data Pelanggan',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
-            _buildPelangganItem(
-              '1',
-              'Dimas Riyan Wirayuda',
-              '081226723902',
-              'Jalan Kemangi No 41',
-              '24-05-2026',
-              'Aktif',
-            ),
-            _buildPelangganItem(
-              '10',
-              'Figo Firgiawan',
-              '081226723908',
-              'Karangtengah, Cilongok, Banyumas',
-              '24-05-2026',
-              'Nonaktif',
-            ),
-          ],
+                  const SizedBox(height: 20),
+                  CustomButton(
+                    text: '+ Tambah Pelanggan Baru',
+                    onPressed: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/tambah-pelanggan',
+                      ).then((_) => _refreshData());
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          'Total Pelanggan',
+                          totalPelanggan.toString(),
+                          AppColors.primaryGreen,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildStatCard(
+                          'Pelanggan Aktif',
+                          pelangganAktif.toString(),
+                          AppColors.accentOrange,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  const Text(
+                    'Data Pelanggan',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 15),
+
+                  listPelanggan.isEmpty
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(40.0),
+                            child: Text(
+                              'Belum ada data pelanggan terdaftar di database.',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: listPelanggan.length,
+                          itemBuilder: (context, index) {
+                            final pelanggan = listPelanggan[index];
+
+                            String id = pelanggan['id'].toString();
+                            String nama = pelanggan['nama_pelanggan'] ?? '-';
+                            String telepon = pelanggan['telepon'] ?? '-';
+                            String alamat = pelanggan['alamat'] ?? '-';
+
+                            String tglDaftar = pelanggan['created_at'] != null
+                                ? pelanggan['created_at'].toString().substring(
+                                    0,
+                                    10,
+                                  )
+                                : '-';
+                            String status = pelanggan['status'] ?? 'Aktif';
+
+                            return _buildPelangganItem(
+                              id,
+                              nama,
+                              telepon,
+                              alamat,
+                              tglDaftar,
+                              status,
+                            );
+                          },
+                        ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );

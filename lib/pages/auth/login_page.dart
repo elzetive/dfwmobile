@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
 import 'package:dfw_playstation/widgets/custom_button.dart';
+import 'package:dfw_playstation/services/api_service.dart'; // IMPORT API SERVICE
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,8 +11,12 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final ApiService _apiService = ApiService(); // Instansiasi ApiService
   late TextEditingController usernameController;
   late TextEditingController passwordController;
+
+  bool _isSubmitting = false; // State loading button
+  bool _obscurePassword = true; // State sembunyikan password
 
   @override
   void initState() {
@@ -27,22 +32,39 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _handleLogin() {
-    final username = usernameController.text.trim();
+  void _handleLogin() async {
+    final loginInput = usernameController.text.trim();
     final password = passwordController.text.trim();
 
-    if (username.isEmpty || password.isEmpty) {
+    if (loginInput.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon isi username dan password')),
+        const SnackBar(content: Text('Mohon isi username/email dan password')),
       );
       return;
     }
 
-    if (username == 'admin' && password == '123') {
+    setState(() => _isSubmitting = true);
+
+    // Kirim request ke API Laravel
+    final response = await _apiService.login(loginInput, password);
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (response['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login Berhasil! Selamat Datang.'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
+      );
+      // Pindah ke Dashboard
       Navigator.pushReplacementNamed(context, '/dashboard');
     } else {
+      String errorMsg =
+          response['message'] ?? 'Username/Email atau password salah';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Username atau password salah')),
+        SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
       );
     }
   }
@@ -52,83 +74,95 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
-          child: Column(
-            children: [
-              const SizedBox(height: 50),
-              Image.asset(
-                'assets/images/logo.png',
-                height: 150,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(
-                    Icons.videogame_asset,
-                    size: 100,
-                    color: AppColors.primaryGreen,
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'DFW Playstation',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.primaryGreen,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 30),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 30),
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 150,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(
+                      Icons.videogame_asset,
+                      size: 100,
+                      color: AppColors.primaryGreen,
+                    );
+                  },
                 ),
-              ),
-              const SizedBox(height: 30),
-              const Text(
-                'Selamat datang',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              const Text(
-                'Login ke dalam akun',
-                style: TextStyle(color: Colors.black54, fontSize: 16),
-              ),
-              const SizedBox(height: 40),
+                const SizedBox(height: 10),
+                const Text(
+                  'DFW Playstation',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.primaryGreen,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                const Text(
+                  'Selamat datang',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+                const Text(
+                  'Login ke dalam akun',
+                  style: TextStyle(color: Colors.black54, fontSize: 16),
+                ),
+                const SizedBox(height: 40),
 
-              _buildLabel('Username'),
-              _buildInputField(
-                'Masukkan Username',
-                Icons.person_outline,
-                usernameController,
-              ),
+                _buildLabel('Username atau Email'),
+                _buildInputField(
+                  'Masukkan Username atau Email',
+                  Icons.person_outline,
+                  usernameController,
+                ),
 
-              const SizedBox(height: 20),
-              _buildLabel('Password'),
-              _buildInputField(
-                'Masukkan Password',
-                Icons.lock_outline,
-                passwordController,
-                isPass: true,
-              ),
+                const SizedBox(height: 20),
+                _buildLabel('Password'),
+                _buildInputField(
+                  'Masukkan Password',
+                  Icons.lock_outline,
+                  passwordController,
+                  isPasswordField: true,
+                  obscureText: _obscurePassword,
+                  onToggleVisibility: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                ),
 
-              const SizedBox(height: 50),
-              CustomButton(text: 'Login', onPressed: _handleLogin),
-              const SizedBox(height: 25),
+                const SizedBox(height: 50),
+                _isSubmitting
+                    ? const CircularProgressIndicator(
+                        color: AppColors.primaryGreen,
+                      )
+                    : CustomButton(text: 'Login', onPressed: _handleLogin),
+                const SizedBox(height: 25),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Belum punya akun? "),
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/register'),
-                      child: const Text(
-                        "Daftar Sekarang",
-                        style: TextStyle(
-                          color: AppColors.primaryGreen,
-                          fontWeight: FontWeight.bold,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    const Text("Belum punya akun? "),
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: () => Navigator.pushNamed(context, '/register'),
+                        child: const Text(
+                          "Daftar Sekarang",
+                          style: TextStyle(
+                            color: AppColors.primaryGreen,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
@@ -145,13 +179,28 @@ class _LoginPageState extends State<LoginPage> {
     String hint,
     IconData icon,
     TextEditingController controller, {
-    bool isPass = false,
+    bool isPasswordField = false,
+    bool obscureText = false,
+    VoidCallback? onToggleVisibility,
   }) => TextField(
     controller: controller,
-    obscureText: isPass,
+    obscureText: isPasswordField ? obscureText : false,
+    style: const TextStyle(fontSize: 14),
     decoration: InputDecoration(
       hintText: hint,
       prefixIcon: Icon(icon, color: Colors.black54),
+      suffixIcon: isPasswordField
+          ? IconButton(
+              icon: Icon(
+                obscureText
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: Colors.black54,
+                size: 20,
+              ),
+              onPressed: onToggleVisibility,
+            )
+          : null,
       filled: true,
       fillColor: Colors.white,
       enabledBorder: OutlineInputBorder(

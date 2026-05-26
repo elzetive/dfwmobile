@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
 import 'package:dfw_playstation/widgets/side_bar.dart';
+import 'package:dfw_playstation/services/api_service.dart';
 
 class DaftarTVPage extends StatefulWidget {
   const DaftarTVPage({super.key});
@@ -10,101 +11,116 @@ class DaftarTVPage extends StatefulWidget {
 }
 
 class _DaftarTVPageState extends State<DaftarTVPage> {
-  final List<Map<String, String>> tvList = [
-    {
-      'title': 'TV - 01',
-      'namaTv': 'Polytron',
-      'model': 'PLD 0202',
-      'kondisi': 'Baik',
-    },
-    {
-      'title': 'TV - 01',
-      'namaTv': 'Polytron',
-      'model': 'PLD 0202',
-      'kondisi': 'Baik',
-    },
-    {
-      'title': 'TV - 01',
-      'namaTv': 'Polytron',
-      'model': 'PLD 0202',
-      'kondisi': 'Baik',
-    },
-  ];
+  final ApiService _apiService = ApiService();
+  late Future<List<dynamic>> _tvData;
+
+  @override
+  void initState() {
+    super.initState();
+    _tvData = _apiService.fetchTvData();
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _tvData = _apiService.fetchTvData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
-      drawer: const SideBar(), // Menggunakan Sidebar global
+      drawer: const SideBar(),
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: Image.asset(
-          'assets/images/logo.png',
-          height: 35,
-          errorBuilder: (context, error, stackTrace) {
-            return const Text(
-              'DFW Playstation',
-              style: TextStyle(
-                color: AppColors.primaryGreen,
-                fontWeight: FontWeight.bold,
-              ),
-            );
-          },
-        ),
+        title: Image.asset('assets/images/logo.png', height: 35),
         centerTitle: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Daftar TV',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkGrey,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/tambah-tv');
-                },
-                icon: const Icon(Icons.add, color: Colors.white),
-                label: const Text('Tambah TV'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+        child: RefreshIndicator(
+          onRefresh: _refreshData,
+          color: AppColors.primaryGreen,
+          child: FutureBuilder<List<dynamic>>(
+            future: _tvData,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryGreen,
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
+                );
+              }
+              final list = snapshot.data ?? [];
+
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
                 ),
-              ),
-              const SizedBox(height: 20),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: tvList.length,
-                itemBuilder: (context, index) {
-                  final tv = tvList[index];
-                  return _buildTVCard(tv);
-                },
-              ),
-            ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Daftar TV',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/tambah-tv',
+                        ).then((_) => _refreshData());
+                      },
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      label: const Text('Tambah TV'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGreen,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    list.isEmpty
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Text(
+                                'Belum ada data monitor TV terpasang.',
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: list.length,
+                            itemBuilder: (context, index) {
+                              return _buildTVCard(list[index]);
+                            },
+                          ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTVCard(Map<String, String> tv) {
+  Widget _buildTVCard(Map<String, dynamic> tv) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -121,7 +137,7 @@ class _DaftarTVPageState extends State<DaftarTVPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  tv['title']!,
+                  '${tv['id']} - ${tv['nama_tv']}',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -137,9 +153,9 @@ class _DaftarTVPageState extends State<DaftarTVPage> {
                     border: Border.all(color: AppColors.primaryGreen),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text(
-                    'Aktif',
-                    style: TextStyle(
+                  child: Text(
+                    tv['status'] ?? 'Tersedia',
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.primaryGreen,
                       fontWeight: FontWeight.w600,
@@ -150,12 +166,7 @@ class _DaftarTVPageState extends State<DaftarTVPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Nama TV: ${tv['namaTv']}',
-              style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Model: ${tv['model']}',
+              'Model Deskripsi: ${tv['model']}',
               style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
             ),
             const SizedBox(height: 4),
@@ -168,9 +179,7 @@ class _DaftarTVPageState extends State<DaftarTVPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 OutlinedButton(
-                  onPressed: () {
-                    debugPrint("Edit TV");
-                  },
+                  onPressed: () {},
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.accentOrange),
                     shape: RoundedRectangleBorder(
@@ -191,9 +200,7 @@ class _DaftarTVPageState extends State<DaftarTVPage> {
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: () {
-                    debugPrint("Hapus TV");
-                  },
+                  onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.dangerRed,
                     shape: RoundedRectangleBorder(

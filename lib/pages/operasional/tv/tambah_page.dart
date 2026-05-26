@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/services/api_service.dart';
 
 class TambahTVPage extends StatefulWidget {
   const TambahTVPage({super.key});
@@ -9,11 +10,11 @@ class TambahTVPage extends StatefulWidget {
 }
 
 class _TambahTVPageState extends State<TambahTVPage> {
+  final ApiService _apiService = ApiService();
   late TextEditingController idTVController;
   late TextEditingController namaTVController;
   late TextEditingController modelTVController;
-  String? selectedKondisi;
-  String? selectedStatus;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -31,46 +32,44 @@ class _TambahTVPageState extends State<TambahTVPage> {
     super.dispose();
   }
 
-  void _handleSimpan() {
-    if (idTVController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mohon isi ID TV')));
-      return;
-    }
-
-    if (namaTVController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mohon isi Nama TV')));
-      return;
-    }
-
-    if (modelTVController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mohon isi Model TV')));
-      return;
-    }
-
-    if (selectedKondisi == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mohon pilih Kondisi Unit')));
-      return;
-    }
-
-    if (selectedStatus == null) {
+  void _handleSimpan() async {
+    if (idTVController.text.trim().isEmpty ||
+        namaTVController.text.trim().isEmpty ||
+        modelTVController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon pilih Status Ketersediaan')),
+        const SnackBar(content: Text('Mohon lengkapi seluruh kolom teks TV!')),
       );
       return;
     }
 
-    debugPrint(
-      "TV baru: ID=${idTVController.text}, Nama=${namaTVController.text}, Model=${modelTVController.text}, Kondisi=$selectedKondisi, Status=$selectedStatus",
+    setState(() => _isSaving = true);
+    bool sukses = await _apiService.tambahTv(
+      idTVController.text.trim(),
+      namaTVController.text.trim(),
+      modelTVController.text.trim(),
+      'Baik',
+      'Tersedia',
     );
-    Navigator.pop(context);
+
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (sukses) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Data Hardware TV Berhasil Disimpan!'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
+      );
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal menyimpan TV baru. Periksa ID Kembali.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -80,22 +79,12 @@ class _TambahTVPageState extends State<TambahTVPage> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 1,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.darkGrey),
-          onPressed: () {},
-        ),
-        title: Image.asset(
-          'assets/images/logo.png',
-          height: 35,
-          errorBuilder: (context, error, stackTrace) {
-            return const Text(
-              'DFW Playstation',
-              style: TextStyle(
-                color: AppColors.primaryGreen,
-                fontWeight: FontWeight.bold,
-              ),
-            );
-          },
+        title: const Text(
+          'Tambah TV Baru',
+          style: TextStyle(
+            color: AppColors.primaryGreen,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
@@ -114,78 +103,61 @@ class _TambahTVPageState extends State<TambahTVPage> {
                 ),
               ),
               const SizedBox(height: 30),
-              _buildLabel('ID TV'),
-              _buildInputField('Masukkan ID TV', idTVController),
+              _buildLabel('ID / Kode Hardware TV'),
+              _buildInputField('Contoh: TV-05', idTVController),
               const SizedBox(height: 24),
-              _buildLabel('Nama TV'),
-              _buildInputField('Masukkan nama TV', namaTVController),
+              _buildLabel('Nama Merk TV'),
+              _buildInputField('Contoh: Samsung Smart TV 43', namaTVController),
               const SizedBox(height: 24),
-              _buildLabel('Model TV'),
-              _buildInputField('Masukkan model TV', modelTVController),
-              const SizedBox(height: 24),
-              _buildLabel('Kondisi Unit'),
-              _buildDropdown(
-                hint: 'Pilih Kondisi',
-                value: selectedKondisi,
-                items: ['Baik', 'Rusak', 'Dalam Perbaikan'],
-                onChanged: (val) => setState(() => selectedKondisi = val),
-              ),
-              const SizedBox(height: 24),
-              _buildLabel('Status Ketersediaan'),
-              _buildDropdown(
-                hint: 'Pilih Status',
-                value: selectedStatus,
-                items: ['Tersedia', 'Tidak Tersedia', 'Maintenance'],
-                onChanged: (val) => setState(() => selectedStatus = val),
+              _buildLabel('Model Seri TV'),
+              _buildInputField(
+                'Masukkan nomor seri model TV',
+                modelTVController,
               ),
               const SizedBox(height: 60),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade300,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+              _isSaving
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryGreen,
                       ),
-                      child: const Text(
-                        'Batal',
-                        style: TextStyle(
-                          color: AppColors.darkGrey,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey.shade300,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: const Text(
+                              'Batal',
+                              style: TextStyle(
+                                color: AppColors.darkGrey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _handleSimpan,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryGreen,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: const Text(
+                              'Simpan',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _handleSimpan,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGreen,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text(
-                        'Simpan',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -193,9 +165,8 @@ class _TambahTVPageState extends State<TambahTVPage> {
     );
   }
 
-  Widget _buildLabel(String text) => Container(
-    alignment: Alignment.centerLeft,
-    margin: const EdgeInsets.only(bottom: 12),
+  Widget _buildLabel(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
     child: Text(
       text,
       style: const TextStyle(
@@ -205,7 +176,6 @@ class _TambahTVPageState extends State<TambahTVPage> {
       ),
     ),
   );
-
   Widget _buildInputField(String hint, TextEditingController controller) =>
       TextField(
         controller: controller,
@@ -224,29 +194,4 @@ class _TambahTVPageState extends State<TambahTVPage> {
           ),
         ),
       );
-
-  Widget _buildDropdown({
-    required String hint,
-    required String? value,
-    required List<String> items,
-    required Function(String?) onChanged,
-  }) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: Colors.grey.shade300),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        isExpanded: true,
-        value: value,
-        hint: Text(hint),
-        items: items
-            .map((val) => DropdownMenuItem(value: val, child: Text(val)))
-            .toList(),
-        onChanged: onChanged,
-      ),
-    ),
-  );
 }

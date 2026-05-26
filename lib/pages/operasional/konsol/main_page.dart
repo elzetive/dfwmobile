@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
 import 'package:dfw_playstation/widgets/side_bar.dart';
+import 'package:dfw_playstation/services/api_service.dart';
 
 class DaftarKonsolPage extends StatefulWidget {
   const DaftarKonsolPage({super.key});
@@ -10,17 +11,26 @@ class DaftarKonsolPage extends StatefulWidget {
 }
 
 class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
-  final List<Map<String, String>> konsolList = [
-    {'title': 'PS4 - 01', 'tipe': 'PS4-01', 'kondisi': 'Baik'},
-    {'title': 'PS4 - 01', 'tipe': 'PS4-01', 'kondisi': 'Baik'},
-    {'title': 'PS4 - 01', 'tipe': 'PS4-01', 'kondisi': 'Baik'},
-  ];
+  final ApiService _apiService = ApiService();
+  late Future<List<dynamic>> _konsolData;
+
+  @override
+  void initState() {
+    super.initState();
+    _konsolData = _apiService.fetchKonsolData();
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _konsolData = _apiService.fetchKonsolData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
-      drawer: const SideBar(), // Memakai Sidebar global
+      drawer: const SideBar(),
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 1,
@@ -41,55 +51,93 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Daftar Konsol',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkGrey,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/tambah-konsol');
-                },
-                icon: const Icon(Icons.add, color: Colors.white),
-                label: const Text('Tambah Konsol'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+        child: RefreshIndicator(
+          onRefresh: _refreshData,
+          color: AppColors.primaryGreen,
+          child: FutureBuilder<List<dynamic>>(
+            future: _konsolData,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryGreen,
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+
+              final list = snapshot.data ?? [];
+
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
                 ),
-              ),
-              const SizedBox(height: 20),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: konsolList.length,
-                itemBuilder: (context, index) {
-                  final konsol = konsolList[index];
-                  return _buildKonsolCard(konsol);
-                },
-              ),
-            ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Daftar Konsol',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/tambah-konsol',
+                        ).then((_) => _refreshData());
+                      },
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      label: const Text('Tambah Konsol'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGreen,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    list.isEmpty
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(24.0),
+                              child: Text('Belum ada data konsol di database.'),
+                            ),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: list.length,
+                            itemBuilder: (context, index) {
+                              final konsol = list[index];
+                              return _buildKonsolCard(konsol);
+                            },
+                          ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildKonsolCard(Map<String, String> konsol) {
+  Widget _buildKonsolCard(Map<String, dynamic> konsol) {
+    String status = konsol['status'] ?? 'Tersedia';
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -106,7 +154,7 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  konsol['title']!,
+                  konsol['nama_unit'] ?? '-',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -119,14 +167,20 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.primaryGreen),
+                    border: Border.all(
+                      color: status == 'Tersedia'
+                          ? AppColors.primaryGreen
+                          : Colors.orange,
+                    ),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text(
-                    'Aktif',
+                  child: Text(
+                    status,
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.primaryGreen,
+                      color: status == 'Tersedia'
+                          ? AppColors.primaryGreen
+                          : Colors.orange,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -134,6 +188,11 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
               ],
             ),
             const SizedBox(height: 12),
+            Text(
+              'ID Kode: ${konsol['id']}',
+              style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
+            ),
+            const SizedBox(height: 4),
             Text(
               'Tipe: ${konsol['tipe']}',
               style: const TextStyle(fontSize: 14, color: AppColors.darkGrey),
@@ -148,9 +207,7 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 OutlinedButton(
-                  onPressed: () {
-                    debugPrint("Edit konsol");
-                  },
+                  onPressed: () {},
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.accentOrange),
                     shape: RoundedRectangleBorder(
@@ -171,9 +228,7 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: () {
-                    debugPrint("Hapus konsol");
-                  },
+                  onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.dangerRed,
                     shape: RoundedRectangleBorder(
