@@ -1,9 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
 import 'package:dfw_playstation/widgets/side_bar.dart';
+import 'package:dfw_playstation/services/api_service.dart'; // 1. Import Service API Laravel
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  final ApiService _apiService = ApiService();
+  late Future<Map<String, dynamic>> _dashboardData;
+
+  @override
+  void initState() {
+    super.initState();
+    // Panggil API saat halaman dimuat pertama kali
+    _dashboardData = _apiService.fetchDashboardData();
+  }
+
+  // Fungsi Pull to Refresh untuk memperbarui data saat layar ditarik ke bawah
+  Future<void> _refreshData() async {
+    setState(() {
+      _dashboardData = _apiService.fetchDashboardData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,79 +52,198 @@ class DashboardPage extends StatelessWidget {
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Dashboard',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
+      // 2. Bungkus body dengan RefreshIndicator dan FutureBuilder
+      body: RefreshIndicator(
+        onRefresh:
+            _refreshData, // PERBAIKAN: Menggunakan onRefresh, bukan onPressed
+        color: AppColors.primaryGreen,
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: _dashboardData,
+          builder: (context, snapshot) {
+            // Skenario A: Server Laravel sedang merespon (Loading)
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(color: AppColors.primaryGreen),
+              );
+            }
 
-            // 1. Grid Statistik Utama
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childAspectRatio: 1.5,
-              children: [
-                _buildStatCard('Total Unit', '5', Colors.black),
-                _buildStatCard('Sedang Aktif', '5', AppColors.primaryGreen),
-                _buildStatCard('Tersedia', '5', Colors.blue),
-                _buildStatCard('Dalam Perawatan', '0', Colors.orange),
-              ],
-            ),
+            // Skenario B: Error koneksi (misal server mati / IP salah)
+            if (snapshot.hasError) {
+              return Center(
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    const Center(
+                      child: Text(
+                        'Gagal terhubung ke server backend.',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Center(
+                      child: Text(
+                        '${snapshot.error}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
 
-            const SizedBox(height: 30),
-            const Text(
-              'Kelola Peralatan',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGreen,
+                      ),
+                      onPressed: _refreshData,
+                      child: const Text(
+                        'Coba Lagi',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
 
-            // 2. Menu Kartu Navigasi Peralatan
-            _buildMenuCard(
-              title: 'Daftar Konsol',
-              subtitle: 'Kelola data aset konsol game',
-              icon: Icons.videogame_asset,
-              onTap: () {
-                Navigator.pushNamed(context, '/daftar-konsol');
-              },
-            ),
-            const SizedBox(height: 15),
-            _buildMenuCard(
-              title: 'Daftar TV',
-              subtitle: 'Kelola data monitor dan TV terpasang',
-              icon: Icons.tv,
-              onTap: () {
-                Navigator.pushNamed(context, '/daftar-tv');
-              },
-            ),
+            // Skenario C: Sukses menarik data JSON dari MySQL via Laravel
+            if (snapshot.hasData) {
+              final responseData = snapshot.data!['data'];
+              final stats = responseData['statistics'];
+              final List transactions = responseData['transactions'] ?? [];
 
-            const SizedBox(height: 30),
-            const Text(
-              'Transaksi Terbaru',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
+              // Ekstrak data statistik riil backend
+              String totalUnit = stats['total_unit'].toString();
+              String sedangAktif = stats['sedang_aktif'].toString();
+              String tersedia = stats['tersedia'].toString();
+              String dalamPerawatan = stats['dalam_perawatan'].toString();
 
-            // 3. List Transaksi Aktif Hari Ini
-            _buildTransactionItem('Dimas Riyan', 'PS4-01', '2 Jam'),
-            _buildTransactionItem('Dimas Riyan', 'PS4-01', '2 Jam'),
-          ],
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Dashboard',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // GRID STATISTIK (Menggunakan data riil dari API)
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 1.5,
+                      children: [
+                        _buildStatCard('Total Unit', totalUnit, Colors.black),
+                        _buildStatCard(
+                          'Sedang Aktif',
+                          sedangAktif,
+                          AppColors.primaryGreen,
+                        ),
+                        _buildStatCard('Tersedia', tersedia, Colors.blue),
+                        _buildStatCard(
+                          'Dalam Perawatan',
+                          dalamPerawatan,
+                          Colors.orange,
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 30),
+                    const Text(
+                      'Kelola Peralatan',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+
+                    _buildMenuCard(
+                      title: 'Daftar Konsol',
+                      subtitle: 'Kelola data aset konsol game',
+                      icon: Icons.videogame_asset,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/daftar-konsol');
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                    _buildMenuCard(
+                      title: 'Daftar TV',
+                      subtitle: 'Kelola data monitor dan TV terpasang',
+                      icon: Icons.tv,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/daftar-tv');
+                      },
+                    ),
+
+                    const SizedBox(height: 30),
+                    const Text(
+                      'Transaksi Terbaru',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+
+                    // LIST TRANSAKSI DINAMIS
+                    transactions.isEmpty
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(20.0),
+                              child: Text(
+                                'Belum ada riwayat transaksi sewa hari ini.',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: transactions.length,
+                            itemBuilder: (context, index) {
+                              final tx = transactions[index];
+                              return _buildTransactionItem(
+                                tx['nama_pelanggan'] ?? 'Anonim',
+                                tx['nama_unit'] ?? '-',
+                                '${tx['durasi_jam']} Jam',
+                              );
+                            },
+                          ),
+                  ],
+                ),
+              );
+            }
+
+            return const Center(child: Text('Data kosong'));
+          },
         ),
       ),
     );
   }
 
+  // --- Widget Komponen Suku Cadang UI Asli Kelompok Kalian ---
   Widget _buildStatCard(String title, String count, Color color) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
+        // PERBAIKAN: Menggunakan .withValues() untuk menghindari warning deprecated di Flutter baru
         border: Border.all(color: color.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(10),
         color: Colors.white,
@@ -147,6 +289,7 @@ class DashboardPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
+                // PERBAIKAN: Menggunakan .withValues() untuk menghindari warning deprecated di Flutter baru
                 color: AppColors.primaryGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -208,7 +351,7 @@ class DashboardPage extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                'Konsol : $konsol\nDurasi : $durasi',
+                'Unit : $konsol\nDurasi : $durasi',
                 style: const TextStyle(fontSize: 12),
               ),
             ],
