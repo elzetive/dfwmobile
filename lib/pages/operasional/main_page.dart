@@ -39,13 +39,24 @@ class _OperasionalPageState extends State<OperasionalPage> {
           children: [
             Image.asset('assets/images/logo.png', height: 30),
             const SizedBox(width: 10),
-            const Text(
-              'DFW Playstation',
-              style: TextStyle(
-                color: AppColors.primaryGreen,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+            FutureBuilder<Map<String, dynamic>>(
+              future: _apiService.fetchPengaturan(),
+              builder: (context, snapshot) {
+                String namaUsaha = '';
+
+                if (snapshot.hasData && snapshot.data!['success'] == true) {
+                  namaUsaha = snapshot.data!['data']['nama_usaha'].toString();
+                }
+
+                return Text(
+                  namaUsaha.isEmpty ? 'Memuat...' : namaUsaha,
+                  style: const TextStyle(
+                    color: AppColors.primaryGreen,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                );
+              },
             ),
           ],
         ),

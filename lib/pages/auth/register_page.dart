@@ -116,13 +116,24 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  'DFW Playstation',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.primaryGreen,
-                  ),
+                FutureBuilder<Map<String, dynamic>>(
+                  future: _apiService.fetchPengaturan(),
+                  builder: (context, snapshot) {
+                    String namaUsaha = '';
+
+                    if (snapshot.hasData && snapshot.data!['success'] == true) {
+                      namaUsaha = snapshot.data!['data']['nama_usaha'].toString();
+                    }
+
+                    return Text(
+                      namaUsaha.isEmpty ? 'Memuat...' : namaUsaha,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primaryGreen,
+                      ),
+                    );
+                  },
                 ),
                 const Text(
                   'Form Pendaftaran',

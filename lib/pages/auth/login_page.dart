@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
 import 'package:dfw_playstation/widgets/custom_button.dart';
-import 'package:dfw_playstation/services/api_service.dart'; // IMPORT API SERVICE
+import 'package:dfw_playstation/services/api_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -93,13 +93,25 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  'DFW Playstation',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.primaryGreen,
-                  ),
+                
+                FutureBuilder<Map<String, dynamic>>(
+                  future: _apiService.fetchPengaturan(),
+                  builder: (context, snapshot) {
+                    String namaUsaha = '';
+
+                    if (snapshot.hasData && snapshot.data!['success'] == true) {
+                      namaUsaha = snapshot.data!['data']['nama_usaha'].toString();
+                    }
+
+                    return Text(
+                      namaUsaha.isEmpty ? 'Memuat...' : namaUsaha, 
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primaryGreen,
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 30),
                 const Text(

@@ -26,6 +26,46 @@ class ApiService {
     }, 201);
   }
 
+  Future<bool> hapusPelanggan(String id) async {
+    try {
+      final res = await http.delete(Uri.parse('$baseUrl/pelanggan/$id'));
+      if (res.statusCode != 200) {
+        debugPrint("Gagal Hapus Pelanggan $id. Status: ${res.statusCode}");
+      }
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint("Error hapusPelanggan: $e");
+      return false;
+    }
+  }
+
+  Future<bool> editPelanggan(
+    String id,
+    String nama,
+    String telepon,
+    String alamat,
+    String status,
+  ) async {
+    try {
+      final res = await http.put(
+        Uri.parse('$baseUrl/pelanggan/$id'),
+        body: {
+          'nama_pelanggan': nama,
+          'telepon': telepon,
+          'alamat': alamat,
+          'status': status,
+        },
+      );
+      if (res.statusCode != 200) {
+        debugPrint("Gagal Edit Pelanggan $id. Status: ${res.statusCode}");
+      }
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint("Error editPelanggan: $e");
+      return false;
+    }
+  }
+
   // ==================== INVENTARIS & OPERASIONAL ====================
   Future<List<dynamic>> fetchKonsolData() async {
     return _getList('$baseUrl/konsol');
@@ -220,6 +260,45 @@ class ApiService {
       return res.statusCode == successCode;
     } catch (e) {
       debugPrint("Error _post: $e");
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchDetailLaporan(String tanggal) async {
+    return _getMap('$baseUrl/laporan/$tanggal');
+  }
+
+  Future<Map<String, dynamic>> fetchPengaturan() async {
+    return _getMap('$baseUrl/pengaturan');
+  }
+
+  Future<bool> editPengaturan(
+    String nama,
+    String jam,
+    String ps4,
+    String ps5,
+    String xbox,
+    String nintendo,
+  ) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/pengaturan'),
+        headers: {
+          'Accept': 'application/json',
+        },
+        body: {
+          'nama_usaha': nama,
+          'jam_operasional': jam,
+          'harga_ps4': ps4,
+          'harga_ps5': ps5,
+          'harga_xbox': xbox,
+          'harga_nintendo': nintendo,
+        },
+      );
+
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint("Error editPengaturan: $e");
       return false;
     }
   }

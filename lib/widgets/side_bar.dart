@@ -1,14 +1,14 @@
-// lib/widgets/side_bar.dart
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/services/api_service.dart';
 
 class SideBar extends StatelessWidget {
   const SideBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Mendeteksi rute halaman yang sedang aktif saat ini untuk efek highlight
     final currentRoute = ModalRoute.of(context)?.settings.name;
+    final ApiService apiService = ApiService();
 
     return Drawer(
       child: Column(
@@ -34,14 +34,29 @@ class SideBar extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 10),
-                  const Text(
-                    'DFW Menu',
-                    style: TextStyle(
-                      color: AppColors.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                  FutureBuilder<Map<String, dynamic>>(
+                    future: apiService.fetchPengaturan(),
+                    builder: (context, snapshot) {
+                      String namaUsaha = '';
+
+                      if (snapshot.hasData && snapshot.data!['success'] == true) {
+                        
+                        String fullNama = snapshot.data!['data']['nama_usaha'].toString();
+                        String kataPertama = fullNama.split(' ')[0]; 
+                        namaUsaha = '$kataPertama Menu'; 
+                      }
+
+                      return Text(
+                        namaUsaha,
+                        style: const TextStyle(
+                          color: AppColors.primaryGreen,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      );
+                    },
                   ),
+                  // ===============================================
                 ],
               ),
             ),
@@ -55,8 +70,7 @@ class SideBar extends StatelessWidget {
           _buildDrawerItem(
             icon: Icons.list_alt_outlined,
             title: 'Transaksi',
-            isActive:
-                currentRoute == '/transaksi' ||
+            isActive: currentRoute == '/transaksi' ||
                 currentRoute == '/tambah-transaksi' ||
                 currentRoute == '/pengembalian',
             onTap: () => Navigator.pushReplacementNamed(context, '/transaksi'),
@@ -64,26 +78,22 @@ class SideBar extends StatelessWidget {
           _buildDrawerItem(
             icon: Icons.settings_input_component_outlined,
             title: 'Operasional',
-            isActive:
-                currentRoute == '/operasional' ||
+            isActive: currentRoute == '/operasional' ||
                 currentRoute == '/daftar-konsol' ||
                 currentRoute == '/daftar-tv',
-            onTap: () =>
-                Navigator.pushReplacementNamed(context, '/operasional'),
+            onTap: () => Navigator.pushReplacementNamed(context, '/operasional'),
           ),
           _buildDrawerItem(
             icon: Icons.people_outline,
             title: 'Pelanggan',
-            isActive:
-                currentRoute == '/pelanggan' ||
+            isActive: currentRoute == '/pelanggan' ||
                 currentRoute == '/tambah-pelanggan',
             onTap: () => Navigator.pushReplacementNamed(context, '/pelanggan'),
           ),
           _buildDrawerItem(
             icon: Icons.bar_chart_outlined,
             title: 'Laporan',
-            isActive:
-                currentRoute == '/laporan' || currentRoute == '/detail-laporan',
+            isActive: currentRoute == '/laporan' || currentRoute == '/detail-laporan',
             onTap: () => Navigator.pushReplacementNamed(context, '/laporan'),
           ),
           _buildDrawerItem(

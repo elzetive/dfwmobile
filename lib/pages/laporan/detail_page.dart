@@ -1,11 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
+import 'package:dfw_playstation/services/api_service.dart';
 
-class DetailLaporanPage extends StatelessWidget {
+class DetailLaporanPage extends StatefulWidget {
   const DetailLaporanPage({super.key});
 
   @override
+  State<DetailLaporanPage> createState() => _DetailLaporanPageState();
+}
+
+class _DetailLaporanPageState extends State<DetailLaporanPage> {
+  final ApiService _apiService = ApiService();
+
+  String formatRupiah(dynamic amount) {
+    if (amount == null) return 'Rp 0';
+    final formatCurrency = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    return formatCurrency.format(int.parse(amount.toString()));
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final String rawTanggal = ModalRoute.of(context)!.settings.arguments as String;
+    
+    String tanggalJudul = rawTanggal;
+    try {
+      DateTime dt = DateTime.parse(rawTanggal);
+      tanggalJudul = DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(dt);
+    } catch (e) {
+      // Abaikan kalo error parse
+    }
+
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
@@ -20,95 +49,121 @@ class DetailLaporanPage extends StatelessWidget {
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _apiService.fetchDetailLaporan(rawTanggal),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryGreen),
+            );
+          }
+
+          if (snapshot.hasError) {
+             return Center(child: Text('Gagal mengambil detail laporan: ${snapshot.error}'));
+          }
+
+          final response = snapshot.data ?? {};
+          final summary = response['summary'] ?? {};
+          final List listTransaksi = response['data'] ?? [];
+
+          final int totalTransaksi = summary['total_transaksi'] ?? 0;
+          final int totalPendapatan = summary['total_pendapatan'] ?? 0;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryGreen,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Jumat, 12 Desember 2025',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryGreen,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        tanggalJudul,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
-                  ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGreen,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Kembali',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryGreen,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(child: _buildSummaryCard('Total Transaksi', '$totalTransaksi')),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildSummaryCard('Total Pendapatan', formatRupiah(totalPendapatan)),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Kembali',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
+                  ],
                 ),
+                const SizedBox(height: 24),
+                
+                listTransaksi.isEmpty 
+                  ? const Center(child: Text('Tidak ada rincian data.'))
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: listTransaksi.length,
+                      itemBuilder: (context, index) {
+                        final trx = listTransaksi[index];
+                        
+                        String waktuMulai = '-';
+                        if (trx['created_at'] != null) {
+                          try {
+                            DateTime dtTrx = DateTime.parse(trx['created_at']);
+                            waktuMulai = DateFormat('HH:mm').format(dtTrx);
+                          } catch (e) {
+                            waktuMulai = trx['created_at'].toString().split(' ').last;
+                          }
+                        }
+
+                        return _buildTransactionCard(
+                          pelanggan: trx['nama_pelanggan'] ?? 'Unknown',
+                          konsol: trx['nama_unit'] ?? '-',
+                          waktuMulai: waktuMulai,
+                          durasi: '${trx['durasi_jam']} jam',
+                          total: formatRupiah(trx['total_harga']),
+                          adaBukti: trx['bukti_transaksi'] != null,
+                        );
+                      }
+                  ),
               ],
             ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(child: _buildSummaryCard('Total Transaksi', '6')),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildSummaryCard('Total Pendapatan', 'Rp 492.000'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            _buildTransactionCard(
-              pelanggan: 'Dimas Riyan Wirayuda',
-              konsol: 'Unit 1 - PS 5',
-              waktuMulai: '22:37',
-              durasi: '2 jam',
-              total: 'Rp 24.000',
-              adaBukti: false,
-            ),
-            _buildTransactionCard(
-              pelanggan: 'Dimas Riyan Wirayuda',
-              konsol: 'Unit 1 - PS 5',
-              waktuMulai: '00:01',
-              durasi: '18 jam',
-              total: 'Rp 216.000',
-              adaBukti: true,
-            ),
-            _buildTransactionCard(
-              pelanggan: 'Dimas Riyan Wirayuda',
-              konsol: 'Unit 3 - PS 5',
-              waktuMulai: '00:40',
-              durasi: '1 jam',
-              total: 'Rp 12.000',
-              adaBukti: true,
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

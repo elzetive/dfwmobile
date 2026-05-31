@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Buat format tanggal
 import 'package:dfw_playstation/core/app_colors.dart';
 import 'package:dfw_playstation/widgets/side_bar.dart';
 import 'package:dfw_playstation/services/api_service.dart';
@@ -19,18 +20,46 @@ class _LaporanPageState extends State<LaporanPage> {
       backgroundColor: AppColors.scaffoldBg,
       drawer: const SideBar(),
       appBar: AppBar(
-        title: const Text(
-          'DFW Laporan Keuangan',
-          style: TextStyle(
-            color: AppColors.primaryGreen,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
         backgroundColor: Colors.white,
         elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/logo.png',
+              height: 30,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.sports_esports,
+                color: AppColors.primaryGreen,
+              ),
+            ),
+            const SizedBox(width: 10),
+            FutureBuilder<Map<String, dynamic>>(
+              future: _apiService.fetchPengaturan(),
+              builder: (context, snapshot) {
+                String namaUsaha = '';
+
+                if (snapshot.hasData && snapshot.data!['success'] == true) {
+                  String fullNama = snapshot.data!['data']['nama_usaha'].toString();
+                  String kataPertama = fullNama.split(' ')[0];
+                  namaUsaha = '$kataPertama Laporan'; 
+                }
+
+                return Text(
+                  namaUsaha.isEmpty ? 'Memuat...' : namaUsaha,
+                  style: const TextStyle(
+                    color: AppColors.primaryGreen,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: _apiService.fetchLaporanData(),
+        future: _apiService.fetchLaporanData(), // Narik dari API
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -38,7 +67,11 @@ class _LaporanPageState extends State<LaporanPage> {
             );
           }
 
-          // Mengambil array list rekap harian dari Laravel
+          if (snapshot.hasError) {
+             return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          // Ambil array data list tanggal dari Laravel
           final List logHarian = snapshot.data?['data'] ?? [];
 
           return SingleChildScrollView(
@@ -68,7 +101,7 @@ class _LaporanPageState extends State<LaporanPage> {
                           ),
                         ),
                         child: const Text(
-                          'Laporan Omset Harian',
+                          'Laporan Harian',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -79,7 +112,7 @@ class _LaporanPageState extends State<LaporanPage> {
                       logHarian.isEmpty
                           ? const Padding(
                               padding: EdgeInsets.all(20),
-                              child: Text('Belum ada data rekapan bulanan.'),
+                              child: Text('Belum ada data transaksi tersimpan.'),
                             )
                           : ListView.builder(
                               shrinkWrap: true,
@@ -87,33 +120,48 @@ class _LaporanPageState extends State<LaporanPage> {
                               itemCount: logHarian.length,
                               itemBuilder: (context, index) {
                                 final item = logHarian[index];
+                                
+                                // FORMAT TANGGAL
+                                String rawDate = item['tanggal'];
+                                String formattedDate = rawDate;
+                                try {
+                                  DateTime dt = DateTime.parse(rawDate);
+                                  formattedDate = DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(dt);
+                                } catch (e) {
+                                  // Kalo error parsing, tetep pake rawDate
+                                }
+
                                 return InkWell(
+                                  // Pas diklik, lempar data "2026-05-31" (raw) ke halaman detail
                                   onTap: () => Navigator.pushNamed(
                                     context,
                                     '/detail-laporan',
-                                    arguments: item['tanggal'],
+                                    arguments: rawDate, 
                                   ),
-                                  child: Padding(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: Colors.grey.shade200,
+                                        ),
+                                      ),
+                                    ),
                                     padding: const EdgeInsets.all(16),
                                     child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          item['tanggal_format'] ??
-                                              item['tanggal'],
+                                          formattedDate, // Nampilin tanggal cantik
                                           style: const TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
-                                        Text(
-                                          'Rp ${item['total_omset']}',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.primaryGreen,
-                                          ),
-                                        ),
+                                        const Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 16,
+                                          color: Colors.grey,
+                                        )
                                       ],
                                     ),
                                   ),

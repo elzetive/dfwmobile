@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
 import 'package:dfw_playstation/widgets/custom_button.dart';
 import 'package:dfw_playstation/widgets/side_bar.dart';
 import 'package:dfw_playstation/services/api_service.dart';
+import 'package:dfw_playstation/pages/pelanggan/ubah_page.dart';
 
 class PelangganPage extends StatefulWidget {
   const PelangganPage({super.key});
@@ -44,13 +46,24 @@ class _PelangganPageState extends State<PelangganPage> {
               ),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'DFW Playstation',
-              style: TextStyle(
-                color: AppColors.primaryGreen,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+            FutureBuilder<Map<String, dynamic>>(
+              future: _apiService.fetchPengaturan(),
+              builder: (context, snapshot) {
+                String namaUsaha = '';
+
+                if (snapshot.hasData && snapshot.data!['success'] == true) {
+                  namaUsaha = snapshot.data!['data']['nama_usaha'].toString();
+                }
+
+                return Text(
+                  namaUsaha.isEmpty ? 'Memuat...' : namaUsaha,
+                  style: const TextStyle(
+                    color: AppColors.primaryGreen,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -186,15 +199,25 @@ class _PelangganPageState extends State<PelangganPage> {
                             String telepon = pelanggan['telepon'] ?? '-';
                             String alamat = pelanggan['alamat'] ?? '-';
 
-                            String tglDaftar = pelanggan['created_at'] != null
-                                ? pelanggan['created_at'].toString().substring(
-                                    0,
-                                    10,
-                                  )
-                                : '-';
+                            String tglDaftar = '-';
+                            if (pelanggan['created_at'] != null) {
+                              try {
+                                DateTime dt = DateTime.parse(
+                                  pelanggan['created_at'],
+                                );
+                                tglDaftar = DateFormat(
+                                  'dd MMM yyyy',
+                                ).format(dt);
+                              } catch (e) {
+                                tglDaftar = pelanggan['created_at']
+                                    .toString()
+                                    .substring(0, 10);
+                              }
+                            }
                             String status = pelanggan['status'] ?? 'Aktif';
 
                             return _buildPelangganItem(
+                              context,
                               id,
                               nama,
                               telepon,
@@ -254,6 +277,7 @@ class _PelangganPageState extends State<PelangganPage> {
   }
 
   Widget _buildPelangganItem(
+    BuildContext context,
     String id,
     String name,
     String phone,
@@ -333,7 +357,20 @@ class _PelangganPageState extends State<PelangganPage> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UbahPelangganPage(
+                        id: id,
+                        namaLama: name,
+                        teleponLama: phone,
+                        alamatLama: alamat,
+                        statusLama: status,
+                      ),
+                    ),
+                  ).then((_) => _refreshData()); 
+                },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.primaryGreen),
                   shape: RoundedRectangleBorder(
@@ -356,7 +393,66 @@ class _PelangganPageState extends State<PelangganPage> {
               ),
               const SizedBox(width: 10),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext dialogContext) {
+                      return AlertDialog(
+                        title: const Text('Konfirmasi Hapus'),
+                        content: Text(
+                          'Yakin mau hapus data pelanggan "$name"?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(dialogContext),
+                            child: const Text(
+                              'Batal',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red.shade400,
+                              elevation: 0,
+                            ),
+                            onPressed: () async {
+                              Navigator.pop(dialogContext);
+
+                              bool sukses = await _apiService.hapusPelanggan(
+                                id,
+                              );
+
+                              if (sukses && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('$name berhasil dihapus!'),
+                                    backgroundColor: AppColors.primaryGreen,
+                                  ),
+                                );
+                                _refreshData();
+                              } else if (!sukses && context.mounted) {
+                                // Munculin notif gagal
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Gagal menghapus data pelanggan.',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                            child: const Text(
+                              'Hapus',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                // --- LOGIKA TOMBOL HAPUS BERAKHIR DI SINI ---
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red.shade400,
                   shape: RoundedRectangleBorder(
