@@ -16,11 +16,13 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
   String? selectedPelangganId;
   String selectedType = 'Main di Tempat';
   String selectedDuration = '1';
-  int totalEstimasi = 12000;
+  int totalEstimasi = 0;
+  int hargaPerJamAktif = 12000;
 
   List<dynamic> _units = [];
   List<dynamic> _customers = [];
   bool _isLoading = true;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -39,10 +41,48 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
     });
   }
 
+  // FIX INTEGRASI: Mendeteksi tipe asli konsol dari data join objek database
+  void _onUnitChanged(String? unitId) async {
+    if (unitId == null) return;
+
+    // 1. Cari data unit yang dipilih admin
+    final selectedUnit = _units.firstWhere((u) => u['id'].toString() == unitId);
+
+    // 2. Baca string tipe konsol murni ('PS3', 'PS4', 'PS5') dari object API
+    // Kita cek field 'tipe' atau ekstraksi nama unitnya secara berlapis agar aman
+    String tipeKonsolMurni = selectedUnit['tipe']?.toString() ?? '';
+
+    if (tipeKonsolMurni.isEmpty) {
+      String namaUnitLengkap =
+          selectedUnit['nama_unit']?.toString().toUpperCase() ?? '';
+      String kodeKonsol =
+          selectedUnit['konsol_id']?.toString().toUpperCase() ?? '';
+
+      if (namaUnitLengkap.contains('PS5') || kodeKonsol.contains('PS5')) {
+        tipeKonsolMurni = 'PS5';
+      } else if (namaUnitLengkap.contains('PS3') ||
+          kodeKonsol.contains('PS3')) {
+        tipeKonsolMurni = 'PS3';
+      } else {
+        tipeKonsolMurni = 'PS4'; // Default fallback aman
+      }
+    }
+
+    // 3. Ambil harga sewa per jam real-time dari menu Pengaturan Laravel
+    int tarifRealTime = await _apiService.getTarifByTipe(tipeKonsolMurni);
+
+    setState(() {
+      selectedUnitId = unitId;
+      hargaPerJamAktif = tarifRealTime;
+      // Hitung total estimasi harga baru secara presisi
+      totalEstimasi = int.parse(selectedDuration) * hargaPerJamAktif;
+    });
+  }
+
   void _hitungHarga(String durasi) {
     setState(() {
       selectedDuration = durasi;
-      totalEstimasi = int.parse(durasi) * 12000;
+      totalEstimasi = int.parse(durasi) * hargaPerJamAktif;
     });
   }
 
@@ -54,6 +94,8 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
       return;
     }
 
+    setState(() => _isSaving = true);
+
     bool sukses = await _apiService.tambahTransaksi(
       selectedPelangganId!,
       selectedUnitId!,
@@ -63,6 +105,7 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
     );
 
     if (!mounted) return;
+    setState(() => _isSaving = false);
 
     if (sukses) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -71,7 +114,12 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
           backgroundColor: AppColors.primaryGreen,
         ),
       );
-      Navigator.pop(context, true);
+
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context, true);
+      } else {
+        Navigator.pushReplacementNamed(context, '/transaksi');
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -87,6 +135,16 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacementNamed(context, '/transaksi');
+            }
+          },
+        ),
         title: const Text(
           'Mulai Transaksi Baru',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
@@ -107,18 +165,18 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
                   _buildLabel('Pilih Unit Play'),
                   _buildDropdown(
                     selectedUnitId,
-                    'Pilih Unit Play (Ready)',
+                    'Pilih Unit Play',
                     _units
                         .map(
                           (u) => DropdownMenuItem<String>(
                             value: u['id'].toString(),
                             child: Text(
-                              '${u['nama_unit']} (${u['konsol_id']})',
+                              '${u['nama_unit']} (${u['konsol_id'] ?? '-'})',
                             ),
                           ),
                         )
                         .toList(),
-                    (val) => setState(() => selectedUnitId = val),
+                    (val) => _onUnitChanged(val),
                   ),
                   const SizedBox(height: 20),
                   _buildLabel('Pilih Pelanggan'),
@@ -178,27 +236,42 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
                     ),
                   ),
                   const SizedBox(height: 50),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildFooterButton(
-                          'Batal',
-                          Colors.grey.shade300,
-                          Colors.black,
-                          () => Navigator.pop(context),
+                  _isSaving
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primaryGreen,
+                          ),
+                        )
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: _buildFooterButton(
+                                'Batal',
+                                Colors.grey.shade300,
+                                Colors.black,
+                                () {
+                                  if (Navigator.canPop(context)) {
+                                    Navigator.pop(context);
+                                  } else {
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      '/transaksi',
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: _buildFooterButton(
+                                'Mulai Sewa',
+                                AppColors.primaryGreen,
+                                Colors.white,
+                                _prosesSewa,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 15),
-                      Expanded(
-                        child: _buildFooterButton(
-                          'Mulai Sewa',
-                          AppColors.primaryGreen,
-                          Colors.white,
-                          _prosesSewa,
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),

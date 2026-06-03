@@ -25,8 +25,9 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String rawTanggal = ModalRoute.of(context)!.settings.arguments as String;
-    
+    final String rawTanggal =
+        ModalRoute.of(context)!.settings.arguments as String;
+
     String tanggalJudul = rawTanggal;
     try {
       DateTime dt = DateTime.parse(rawTanggal);
@@ -38,6 +39,17 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // FIX BLANK SCREEN: Proteksi tombol back utama bawaan AppBar
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacementNamed(context, '/laporan');
+            }
+          },
+        ),
         title: const Text(
           'Detail Laporan',
           style: TextStyle(
@@ -59,7 +71,9 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
           }
 
           if (snapshot.hasError) {
-             return Center(child: Text('Gagal mengambil detail laporan: ${snapshot.error}'));
+            return Center(
+              child: Text('Gagal mengambil detail laporan: ${snapshot.error}'),
+            );
           }
 
           final response = snapshot.data ?? {};
@@ -96,7 +110,14 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        // FIX BLANK SCREEN: Proteksi tombol kembali custom
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        } else {
+                          Navigator.pushReplacementNamed(context, '/laporan');
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryGreen,
                         padding: const EdgeInsets.symmetric(
@@ -122,44 +143,60 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    Expanded(child: _buildSummaryCard('Total Transaksi', '$totalTransaksi')),
+                    Expanded(
+                      child: _buildSummaryCard(
+                        'Total Transaksi',
+                        '$totalTransaksi',
+                      ),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _buildSummaryCard('Total Pendapatan', formatRupiah(totalPendapatan)),
+                      child: _buildSummaryCard(
+                        'Total Pendapatan',
+                        formatRupiah(totalPendapatan),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
-                
-                listTransaksi.isEmpty 
-                  ? const Center(child: Text('Tidak ada rincian data.'))
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: listTransaksi.length,
-                      itemBuilder: (context, index) {
-                        final trx = listTransaksi[index];
-                        
-                        String waktuMulai = '-';
-                        if (trx['created_at'] != null) {
-                          try {
-                            DateTime dtTrx = DateTime.parse(trx['created_at']);
-                            waktuMulai = DateFormat('HH:mm').format(dtTrx);
-                          } catch (e) {
-                            waktuMulai = trx['created_at'].toString().split(' ').last;
-                          }
-                        }
 
-                        return _buildTransactionCard(
-                          pelanggan: trx['nama_pelanggan'] ?? 'Unknown',
-                          konsol: trx['nama_unit'] ?? '-',
-                          waktuMulai: waktuMulai,
-                          durasi: '${trx['durasi_jam']} jam',
-                          total: formatRupiah(trx['total_harga']),
-                          adaBukti: trx['bukti_transaksi'] != null,
-                        );
-                      }
-                  ),
+                listTransaksi.isEmpty
+                    ? const Center(
+                        child: Text('Tidak ada rincian data transaksi.'),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: listTransaksi.length,
+                        itemBuilder: (context, index) {
+                          final trx = listTransaksi[index];
+
+                          String waktuMulai = '-';
+                          if (trx['created_at'] != null) {
+                            try {
+                              DateTime dtTrx = DateTime.parse(
+                                trx['created_at'].toString(),
+                              );
+                              waktuMulai = DateFormat('HH:mm').format(dtTrx);
+                            } catch (e) {
+                              waktuMulai = trx['created_at']
+                                  .toString()
+                                  .split(' ')
+                                  .last;
+                            }
+                          }
+
+                          return _buildTransactionCard(
+                            pelanggan:
+                                trx['nama_pelanggan'] ?? 'Pelanggan Umum',
+                            konsol: trx['nama_unit'] ?? '-',
+                            waktuMulai: waktuMulai,
+                            durasi: '${trx['durasi_jam'] ?? 0} jam',
+                            total: formatRupiah(trx['total_harga']),
+                            adaBukti: trx['bukti_transaksi'] != null,
+                          );
+                        },
+                      ),
               ],
             ),
           );
@@ -176,7 +213,7 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryGreen.withValues(alpha: 0.3),
+            color: AppColors.primaryGreen.withOpacity(0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -221,7 +258,7 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
 import 'package:dfw_playstation/widgets/custom_button.dart';
-import 'package:dfw_playstation/services/api_service.dart'; // IMPORT API SERVICE
+import 'package:dfw_playstation/services/api_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -11,14 +11,12 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final ApiService _apiService = ApiService(); // Instansiasi ApiService
-  bool _isSubmitting = false; // Menangani state loading button
+  final ApiService _apiService = ApiService();
+  bool _isSubmitting = false;
 
-  // State untuk mengontrol visibilitas password
   bool _obscureKataSandi = true;
   bool _obscureUlangiKataSandi = true;
 
-  // Controller untuk menangkap teks inputan
   final TextEditingController _namaLengkapController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _namaPenggunaController = TextEditingController();
@@ -28,7 +26,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    // Membersihkan controller saat halaman ditutup agar memori tidak bocor
     _namaLengkapController.dispose();
     _emailController.dispose();
     _namaPenggunaController.dispose();
@@ -122,7 +119,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     String namaUsaha = '';
 
                     if (snapshot.hasData && snapshot.data!['success'] == true) {
-                      namaUsaha = snapshot.data!['data']['nama_usaha'].toString();
+                      namaUsaha = snapshot.data!['data']['nama_usaha']
+                          .toString();
                     }
 
                     return Text(
@@ -201,7 +199,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     : CustomButton(text: 'Daftar', onPressed: _prosesDaftar),
                 const SizedBox(height: 25),
 
-                // Menggunakan Wrap agar susunan teks bawah adaptif dan bebas dari overflow
                 Wrap(
                   alignment: WrapAlignment.center,
                   crossAxisAlignment: WrapCrossAlignment.center,

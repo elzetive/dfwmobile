@@ -11,12 +11,12 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final ApiService _apiService = ApiService(); // Instansiasi ApiService
+  final ApiService _apiService = ApiService();
   late TextEditingController usernameController;
   late TextEditingController passwordController;
 
-  bool _isSubmitting = false; // State loading button
-  bool _obscurePassword = true; // State sembunyikan password
+  bool _isSubmitting = false;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -45,7 +45,6 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isSubmitting = true);
 
-    // Kirim request ke API Laravel
     final response = await _apiService.login(loginInput, password);
 
     if (!mounted) return;
@@ -58,7 +57,6 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: AppColors.primaryGreen,
         ),
       );
-      // Pindah ke Dashboard
       Navigator.pushReplacementNamed(context, '/dashboard');
     } else {
       String errorMsg =
@@ -93,18 +91,19 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
                 const SizedBox(height: 10),
-                
+
                 FutureBuilder<Map<String, dynamic>>(
                   future: _apiService.fetchPengaturan(),
                   builder: (context, snapshot) {
                     String namaUsaha = '';
 
                     if (snapshot.hasData && snapshot.data!['success'] == true) {
-                      namaUsaha = snapshot.data!['data']['nama_usaha'].toString();
+                      namaUsaha = snapshot.data!['data']['nama_usaha']
+                          .toString();
                     }
 
                     return Text(
-                      namaUsaha.isEmpty ? 'Memuat...' : namaUsaha, 
+                      namaUsaha.isEmpty ? 'Memuat...' : namaUsaha,
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,

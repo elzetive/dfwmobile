@@ -61,7 +61,13 @@ class _TambahTVPageState extends State<TambahTVPage> {
           backgroundColor: AppColors.primaryGreen,
         ),
       );
-      Navigator.pop(context, true);
+
+      // FIX BLANK SCREEN: Proteksi navigasi web browser
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context, true);
+      } else {
+        Navigator.pushReplacementNamed(context, '/daftar-tv');
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -125,7 +131,17 @@ class _TambahTVPageState extends State<TambahTVPage> {
                       children: [
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: () {
+                              // FIX BLANK SCREEN: Proteksi tombol Batal
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              } else {
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  '/daftar-tv',
+                                );
+                              }
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.grey.shade300,
                               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -176,6 +192,7 @@ class _TambahTVPageState extends State<TambahTVPage> {
       ),
     ),
   );
+
   Widget _buildInputField(String hint, TextEditingController controller) =>
       TextField(
         controller: controller,

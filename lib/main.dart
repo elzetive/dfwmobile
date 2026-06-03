@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart'; // WAJIB: Untuk mengaktifkan format tanggal Indonesia
 
 import 'pages/auth/login_page.dart';
 import 'pages/auth/register_page.dart';
@@ -26,7 +27,13 @@ import 'pages/transaksi/pengembalian/main_page.dart' as pengembalian;
 
 import 'core/app_colors.dart';
 
-void main() {
+void main() async {
+  // Memastikan binding Flutter siap sebelum melakukan inisialisasi asinkronous
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Menginisialisasi format bahasa Indonesia agar DateFormat('...', 'id_ID') tidak error di Flutter Web
+  await initializeDateFormatting('id_ID', null);
+
   runApp(const MyApp());
 }
 

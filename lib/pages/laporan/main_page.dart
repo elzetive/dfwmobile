@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Buat format tanggal
+import 'package:intl/intl.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
 import 'package:dfw_playstation/widgets/side_bar.dart';
 import 'package:dfw_playstation/services/api_service.dart';
@@ -37,16 +37,19 @@ class _LaporanPageState extends State<LaporanPage> {
             FutureBuilder<Map<String, dynamic>>(
               future: _apiService.fetchPengaturan(),
               builder: (context, snapshot) {
-                String namaUsaha = '';
+                String namaUsaha = 'Laporan';
 
                 if (snapshot.hasData && snapshot.data!['success'] == true) {
-                  String fullNama = snapshot.data!['data']['nama_usaha'].toString();
-                  String kataPertama = fullNama.split(' ')[0];
-                  namaUsaha = '$kataPertama Laporan'; 
+                  String fullNama =
+                      snapshot.data!['data']['nama_usaha']?.toString() ?? '';
+                  if (fullNama.isNotEmpty) {
+                    String kataPertama = fullNama.split(' ')[0];
+                    namaUsaha = '$kataPertama Laporan';
+                  }
                 }
 
                 return Text(
-                  namaUsaha.isEmpty ? 'Memuat...' : namaUsaha,
+                  namaUsaha,
                   style: const TextStyle(
                     color: AppColors.primaryGreen,
                     fontWeight: FontWeight.bold,
@@ -59,7 +62,7 @@ class _LaporanPageState extends State<LaporanPage> {
         ),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: _apiService.fetchLaporanData(), // Narik dari API
+        future: _apiService.fetchLaporanData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -68,10 +71,9 @@ class _LaporanPageState extends State<LaporanPage> {
           }
 
           if (snapshot.hasError) {
-             return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          // Ambil array data list tanggal dari Laravel
           final List logHarian = snapshot.data?['data'] ?? [];
 
           return SingleChildScrollView(
@@ -112,7 +114,9 @@ class _LaporanPageState extends State<LaporanPage> {
                       logHarian.isEmpty
                           ? const Padding(
                               padding: EdgeInsets.all(20),
-                              child: Text('Belum ada data transaksi tersimpan.'),
+                              child: Text(
+                                'Belum ada data transaksi tersimpan.',
+                              ),
                             )
                           : ListView.builder(
                               shrinkWrap: true,
@@ -120,23 +124,25 @@ class _LaporanPageState extends State<LaporanPage> {
                               itemCount: logHarian.length,
                               itemBuilder: (context, index) {
                                 final item = logHarian[index];
-                                
-                                // FORMAT TANGGAL
-                                String rawDate = item['tanggal'];
+
+                                String rawDate = item['tanggal'].toString();
                                 String formattedDate = rawDate;
                                 try {
+                                  // Parsing aman untuk browser web lokal
                                   DateTime dt = DateTime.parse(rawDate);
-                                  formattedDate = DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(dt);
+                                  formattedDate = DateFormat(
+                                    'EEEE, dd MMMM yyyy',
+                                    'id_ID',
+                                  ).format(dt);
                                 } catch (e) {
-                                  // Kalo error parsing, tetep pake rawDate
+                                  formattedDate = rawDate;
                                 }
 
                                 return InkWell(
-                                  // Pas diklik, lempar data "2026-05-31" (raw) ke halaman detail
                                   onTap: () => Navigator.pushNamed(
                                     context,
                                     '/detail-laporan',
-                                    arguments: rawDate, 
+                                    arguments: rawDate,
                                   ),
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -148,10 +154,11 @@ class _LaporanPageState extends State<LaporanPage> {
                                     ),
                                     padding: const EdgeInsets.all(16),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          formattedDate, // Nampilin tanggal cantik
+                                          formattedDate,
                                           style: const TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w500,
@@ -161,7 +168,7 @@ class _LaporanPageState extends State<LaporanPage> {
                                           Icons.arrow_forward_ios,
                                           size: 16,
                                           color: Colors.grey,
-                                        )
+                                        ),
                                       ],
                                     ),
                                   ),

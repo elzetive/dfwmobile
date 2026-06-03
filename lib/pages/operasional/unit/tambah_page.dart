@@ -29,12 +29,37 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
   }
 
   void _loadRelations() async {
-    final k = await _apiService.fetchKonsolData();
-    final t = await _apiService.fetchTvData();
+    // 1. Ambil semua data Master Konsol dan TV
+    final allKonsols = await _apiService.fetchKonsolData();
+    final allTvs = await _apiService.fetchTvData();
+
+    // 2. Ambil semua data Kombinasi Unit yang sudah terdaftar saat ini
+    final registeredUnits = await _apiService.fetchUnitData();
+
     if (!mounted) return;
+
     setState(() {
-      _konsols = k;
-      _tvs = t;
+      // 3. Kumpulkan ID Konsol dan TV yang sudah dipakai di dalam Unit manapun
+      final usedKonsolIds = registeredUnits
+          .map((u) => u['konsol_id'].toString())
+          .toSet();
+      final usedTvIds = registeredUnits
+          .map((u) => u['tv_id'].toString())
+          .toSet();
+
+      // 4. FILTER KETAT: Hanya tampilkan Konsol dan TV yang:
+      // - Statusnya 'Tersedia'
+      // - ID-nya BELUM PERNAH terdaftar di tabel units (usedKonsolIds / usedTvIds)
+      _konsols = allKonsols.where((k) {
+        return k['status'] == 'Tersedia' &&
+            !usedKonsolIds.contains(k['id'].toString());
+      }).toList();
+
+      _tvs = allTvs.where((t) {
+        return t['status'] == 'Tersedia' &&
+            !usedTvIds.contains(t['id'].toString());
+      }).toList();
+
       _isLoading = false;
     });
   }
@@ -76,7 +101,12 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
           backgroundColor: AppColors.primaryGreen,
         ),
       );
-      Navigator.pop(context, true);
+
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context, true);
+      } else {
+        Navigator.pushReplacementNamed(context, '/operasional');
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -132,35 +162,60 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
                     ),
                     const SizedBox(height: 24),
                     _buildLabel('Pilih Konsol Terpasang'),
-                    _buildDropdown(
-                      hint: 'Pilih Hardware Konsol',
-                      value: selectedKonsolId,
-                      items: _konsols
-                          .map(
-                            (k) => DropdownMenuItem<String>(
-                              value: k['id'].toString(),
-                              child: Text('${k['id']} - ${k['nama_unit']}'),
+                    _konsols.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            child: Text(
+                              'Semua Hardware Konsol sudah terpakai di Unit lain.',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           )
-                          .toList(),
-                      onChanged: (val) =>
-                          setState(() => selectedKonsolId = val),
-                    ),
+                        : _buildDropdown(
+                            hint: 'Pilih Hardware Konsol',
+                            value: selectedKonsolId,
+                            items: _konsols
+                                .map(
+                                  (k) => DropdownMenuItem<String>(
+                                    value: k['id'].toString(),
+                                    child: Text(
+                                      '${k['id']} - ${k['nama_unit']} (${k['tipe']})',
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (val) =>
+                                setState(() => selectedKonsolId = val),
+                          ),
                     const SizedBox(height: 24),
                     _buildLabel('Pilih TV Terpasang'),
-                    _buildDropdown(
-                      hint: 'Pilih Hardware TV',
-                      value: selectedTVId,
-                      items: _tvs
-                          .map(
-                            (t) => DropdownMenuItem<String>(
-                              value: t['id'].toString(),
-                              child: Text('${t['id']} - ${t['nama_tv']}'),
+                    _tvs.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            child: Text(
+                              'Semua Hardware TV sudah terpakai di Unit lain.',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           )
-                          .toList(),
-                      onChanged: (val) => setState(() => selectedTVId = val),
-                    ),
+                        : _buildDropdown(
+                            hint: 'Pilih Hardware TV',
+                            value: selectedTVId,
+                            items: _tvs
+                                .map(
+                                  (t) => DropdownMenuItem<String>(
+                                    value: t['id'].toString(),
+                                    child: Text('${t['id']} - ${t['nama_tv']}'),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (val) =>
+                                setState(() => selectedTVId = val),
+                          ),
                     const SizedBox(height: 60),
                     _isSaving
                         ? const Center(
@@ -172,7 +227,16 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
                             children: [
                               Expanded(
                                 child: ElevatedButton(
-                                  onPressed: () => Navigator.pop(context),
+                                  onPressed: () {
+                                    if (Navigator.canPop(context)) {
+                                      Navigator.pop(context);
+                                    } else {
+                                      Navigator.pushReplacementNamed(
+                                        context,
+                                        '/operasional',
+                                      );
+                                    }
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.grey.shade300,
                                     padding: const EdgeInsets.symmetric(
@@ -191,7 +255,9 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: ElevatedButton(
-                                  onPressed: _handleSimpan,
+                                  onPressed: (_konsols.isEmpty || _tvs.isEmpty)
+                                      ? null
+                                      : _handleSimpan,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.primaryGreen,
                                     padding: const EdgeInsets.symmetric(
@@ -227,6 +293,7 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
       ),
     ),
   );
+
   Widget _buildInputField(String hint, TextEditingController controller) =>
       TextField(
         controller: controller,
@@ -241,6 +308,7 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
+
   Widget _buildDropdown({
     required String hint,
     required String? value,
