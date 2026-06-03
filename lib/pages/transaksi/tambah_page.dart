@@ -17,12 +17,13 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
   String selectedType = 'Main di Tempat';
   String selectedDuration = '1';
   int totalEstimasi = 0;
-  int hargaPerJamAktif = 12000;
+  int hargaPerJamAktif = 0;
 
   List<dynamic> _units = [];
   List<dynamic> _customers = [];
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isLoadingTarif = false;
 
   @override
   void initState() {
@@ -45,41 +46,68 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
   void _onUnitChanged(String? unitId) async {
     if (unitId == null) return;
 
-    // 1. Cari data unit yang dipilih admin
-    final selectedUnit = _units.firstWhere((u) => u['id'].toString() == unitId);
-
-    // 2. Baca string tipe konsol murni ('PS3', 'PS4', 'PS5') dari object API
-    // Kita cek field 'tipe' atau ekstraksi nama unitnya secara berlapis agar aman
-    String tipeKonsolMurni = selectedUnit['tipe']?.toString() ?? '';
-
-    if (tipeKonsolMurni.isEmpty) {
-      String namaUnitLengkap =
-          selectedUnit['nama_unit']?.toString().toUpperCase() ?? '';
-      String kodeKonsol =
-          selectedUnit['konsol_id']?.toString().toUpperCase() ?? '';
-
-      if (namaUnitLengkap.contains('PS5') || kodeKonsol.contains('PS5')) {
-        tipeKonsolMurni = 'PS5';
-      } else if (namaUnitLengkap.contains('PS3') ||
-          kodeKonsol.contains('PS3')) {
-        tipeKonsolMurni = 'PS3';
-      } else {
-        tipeKonsolMurni = 'PS4'; // Default fallback aman
-      }
-    }
-
-    // 3. Ambil harga sewa per jam real-time dari menu Pengaturan Laravel
-    int tarifRealTime = await _apiService.getTarifByTipe(tipeKonsolMurni);
-
+    // Set loading state agar user tidak bisa ubah durasi saat fetch tarif
     setState(() {
+      _isLoadingTarif = true;
       selectedUnitId = unitId;
-      hargaPerJamAktif = tarifRealTime;
-      // Hitung total estimasi harga baru secara presisi
-      totalEstimasi = int.parse(selectedDuration) * hargaPerJamAktif;
+      totalEstimasi = 0; // Reset harga saat unit berubah
+      selectedDuration = '1'; // Reset durasi ke 1 jam
     });
+
+    try {
+      // 1. Cari data unit yang dipilih admin
+      final selectedUnit = _units.firstWhere((u) => u['id'].toString() == unitId);
+
+      // 2. Baca string tipe konsol murni ('PS3', 'PS4', 'PS5') dari object API
+      String tipeKonsolMurni = selectedUnit['tipe']?.toString() ?? '';
+
+      if (tipeKonsolMurni.isEmpty) {
+        String namaUnitLengkap =
+            selectedUnit['nama_unit']?.toString().toUpperCase() ?? '';
+        String kodeKonsol =
+            selectedUnit['konsol_id']?.toString().toUpperCase() ?? '';
+
+        if (namaUnitLengkap.contains('PS5') || kodeKonsol.contains('PS5')) {
+          tipeKonsolMurni = 'PS5';
+        } else if (namaUnitLengkap.contains('PS3') ||
+            kodeKonsol.contains('PS3')) {
+          tipeKonsolMurni = 'PS3';
+        } else {
+          tipeKonsolMurni = 'PS4'; // Default fallback aman
+        }
+      }
+
+      // 3. Ambil harga sewa per jam real-time dari menu Pengaturan Laravel
+      int tarifRealTime = await _apiService.getTarifByTipe(tipeKonsolMurni);
+
+      if (!mounted) return;
+
+      setState(() {
+        hargaPerJamAktif = tarifRealTime;
+        // Hitung total estimasi harga dengan durasi awal (1 jam)
+        totalEstimasi = int.parse(selectedDuration) * hargaPerJamAktif;
+        _isLoadingTarif = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingTarif = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengambil tarif: $e')),
+      );
+    }
   }
 
   void _hitungHarga(String durasi) {
+    // Pastikan tarif sudah ter-load dan valid
+    if (hargaPerJamAktif == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pilih unit terlebih dahulu!')),
+      );
+      return;
+    }
+
     setState(() {
       selectedDuration = durasi;
       totalEstimasi = int.parse(durasi) * hargaPerJamAktif;
@@ -90,6 +118,20 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
     if (selectedPelangganId == null || selectedUnitId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Mohon lengkapi Unit dan Pelanggan!')),
+      );
+      return;
+    }
+
+    if (hargaPerJamAktif == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Harga konsol belum ter-load, coba lagi!')),
+      );
+      return;
+    }
+
+    if (totalEstimasi == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hitung harga terlebih dahulu!')),
       );
       return;
     }
@@ -208,20 +250,56 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
                   ),
                   const SizedBox(height: 20),
                   _buildLabel('Durasi Jam'),
-                  _buildDropdown(
-                    selectedDuration,
-                    null,
-                    ['1', '2', '3', '4', '5']
-                        .map(
-                          (val) => DropdownMenuItem(
-                            value: val,
-                            child: Text('$val Jam'),
+                  _isLoadingTarif
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: const Row(
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppColors.primaryGreen,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text('Mengambil tarif konsol...'),
+                            ],
                           ),
                         )
-                        .toList(),
-                    (val) => _hitungHarga(val!),
-                  ),
-                  const SizedBox(height: 30),
+                      : _buildDropdown(
+                          selectedDuration,
+                          null,
+                          ['1', '2', '3', '4', '5']
+                              .map(
+                                (val) => DropdownMenuItem(
+                                  value: val,
+                                  child: Text('$val Jam'),
+                                ),
+                              )
+                              .toList(),
+                          (val) => _hitungHarga(val!),
+                        ),
+                  const SizedBox(height: 20),
+                  if (hargaPerJamAktif > 0) ...[
+                    Text(
+                      'Harga per Jam: Rp ${hargaPerJamAktif.toString()}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                   const Text(
                     'Total Estimasi Harga',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -265,9 +343,15 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
                             Expanded(
                               child: _buildFooterButton(
                                 'Mulai Sewa',
-                                AppColors.primaryGreen,
-                                Colors.white,
-                                _prosesSewa,
+                                _isLoadingTarif || hargaPerJamAktif == 0
+                                    ? Colors.grey.shade300
+                                    : AppColors.primaryGreen,
+                                _isLoadingTarif || hargaPerJamAktif == 0
+                                    ? Colors.grey
+                                    : Colors.white,
+                                _isLoadingTarif || hargaPerJamAktif == 0
+                                    ? () {} // Disable button
+                                    : _prosesSewa,
                               ),
                             ),
                           ],

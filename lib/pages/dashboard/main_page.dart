@@ -10,21 +10,42 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends State<DashboardPage>
+    with WidgetsBindingObserver {
   final ApiService _apiService = ApiService();
   late Future<Map<String, dynamic>> _dashboardData;
+  late Future<List<dynamic>> _transactionData;
 
   @override
   void initState() {
     super.initState();
     // Panggil API saat halaman dimuat pertama kali
     _dashboardData = _apiService.fetchDashboardData();
+    _transactionData = _apiService.fetchSemuaTransaksi();
+    // Tambahkan observer untuk mendeteksi ketika app kembali di-focus
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    // Hapus observer saat halaman ditutup
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Refresh data ketika app kembali ke foreground
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshData();
+    }
   }
 
   // Fungsi Pull to Refresh untuk memperbarui data saat layar ditarik ke bawah
   Future<void> _refreshData() async {
     setState(() {
       _dashboardData = _apiService.fetchDashboardData();
+      _transactionData = _apiService.fetchSemuaTransaksi();
     });
   }
 
@@ -123,9 +144,11 @@ class _DashboardPageState extends State<DashboardPage> {
 
             // Skenario C: Sukses menarik data JSON dari MySQL via Laravel
             if (snapshot.hasData) {
+              debugPrint('Dashboard Data: ${snapshot.data}');
               final responseData = snapshot.data!['data'];
               final stats = responseData['statistics'];
-              final List transactions = responseData['transactions'] ?? [];
+
+              debugPrint('Stats: $stats');
 
               // Ekstrak data statistik riil backend
               String totalUnit = stats['total_unit'].toString();
@@ -210,9 +233,27 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     const SizedBox(height: 15),
 
-                    // LIST TRANSAKSI DINAMIS
-                    transactions.isEmpty
-                        ? const Center(
+                    // LIST TRANSAKSI DINAMIS dari API yang benar
+                    FutureBuilder<List<dynamic>>(
+                      future: _transactionData,
+                      builder: (context, txSnapshot) {
+                        if (txSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primaryGreen,
+                            ),
+                          );
+                        }
+
+                        final List transactions = txSnapshot.data ?? [];
+                        debugPrint(
+                            'Transactions from API: $transactions');
+                        debugPrint(
+                            'Transactions count: ${transactions.length}');
+
+                        if (transactions.isEmpty) {
+                          return const Center(
                             child: Padding(
                               padding: EdgeInsets.all(20.0),
                               child: Text(
@@ -223,20 +264,24 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                               ),
                             ),
-                          )
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: transactions.length,
-                            itemBuilder: (context, index) {
-                              final tx = transactions[index];
-                              return _buildTransactionItem(
-                                tx['nama_pelanggan'] ?? 'Anonim',
-                                tx['nama_unit'] ?? '-',
-                                '${tx['durasi_jam']} Jam',
-                              );
-                            },
-                          ),
+                          );
+                        }
+
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: transactions.length,
+                          itemBuilder: (context, index) {
+                            final tx = transactions[index];
+                            return _buildTransactionItem(
+                              tx['nama_pelanggan'] ?? 'Anonim',
+                              tx['nama_unit'] ?? '-',
+                              '${tx['durasi_jam']} Jam',
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ],
                 ),
               );
