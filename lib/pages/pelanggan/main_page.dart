@@ -369,7 +369,7 @@ class _PelangganPageState extends State<PelangganPage> {
                         statusLama: status,
                       ),
                     ),
-                  ).then((_) => _refreshData()); 
+                  ).then((_) => _refreshData());
                 },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.primaryGreen),
@@ -431,7 +431,6 @@ class _PelangganPageState extends State<PelangganPage> {
                                 );
                                 _refreshData();
                               } else if (!sukses && context.mounted) {
-                                // Munculin notif gagal
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
@@ -452,7 +451,6 @@ class _PelangganPageState extends State<PelangganPage> {
                     },
                   );
                 },
-                // --- LOGIKA TOMBOL HAPUS BERAKHIR DI SINI ---
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red.shade400,
                   shape: RoundedRectangleBorder(

@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 class ApiService {
   static const String baseUrl = 'http://localhost:8000/api';
 
-  // ==================== DASHBOARD & PELANGGAN ====================
   Future<Map<String, dynamic>> fetchDashboardData() async {
     return _getMap('$baseUrl/dashboard-data');
   }
@@ -70,7 +69,6 @@ class ApiService {
     }
   }
 
-  // ==================== INVENTARIS & OPERASIONAL ====================
   Future<List<dynamic>> fetchKonsolData() async {
     return _getList('$baseUrl/konsol');
   }
@@ -245,7 +243,6 @@ class ApiService {
     }
   }
 
-  // ==================== TRANSAKSI & PENGEMBALIAN ====================
   Future<List<dynamic>> fetchSemuaTransaksi() async {
     return _getList('$baseUrl/transaksi');
   }
@@ -278,7 +275,6 @@ class ApiService {
     }, 200);
   }
 
-  // ==================== LAPORAN ====================
   Future<Map<String, dynamic>> fetchLaporanData() async {
     return _getMap('$baseUrl/laporan');
   }
@@ -287,19 +283,16 @@ class ApiService {
     return _getMap('$baseUrl/laporan/$tanggal');
   }
 
-  // ==================== PENGATURAN TARIF DINAMIS ====================
   Future<Map<String, dynamic>> fetchPengaturan() async {
     return _getMap('$baseUrl/pengaturan');
   }
 
-  // PERBAIKAN SINKRONISASI MAPPING: Melempar data PS3 murni ke kolom harga_xbox agar tidak memicu SQL Error 500 di Laravel
   Future<bool> editPengaturan(
     String nama,
     String jam,
     String ps3,
     String ps4,
     String ps5,
-    String xbox,
   ) async {
     try {
       final res = await http.post(
@@ -311,9 +304,6 @@ class ApiService {
           'harga_ps3': ps3,
           'harga_ps4': ps4,
           'harga_ps5': ps5,
-          'harga_xbox':
-              ps3, // Mengamankan data PS3 ke kolom fisik harga_xbox database
-          'harga_nintendo': '0',
         },
       );
       return res.statusCode == 200;
@@ -323,26 +313,28 @@ class ApiService {
     }
   }
 
-  // UTILITY HELPER PERBAIKAN FINAL: Memastikan hitungan transaksi membaca field yang pas (PS3 -> harga_xbox)
   Future<int> getTarifByTipe(String tipeKonsol) async {
     final settings = await fetchPengaturan();
     if (settings['success'] == true && settings['data'] != null) {
       final data = settings['data'];
+
+      debugPrint("Mencari tarif untuk: $tipeKonsol");
+      debugPrint("Data murni dari DB baru: $data");
+
       switch (tipeKonsol.toUpperCase()) {
         case 'PS3':
-          return int.tryParse(data['harga_xbox'].toString()) ?? 8000;
+          return int.tryParse(data['harga_ps3'].toString()) ?? 8000;
         case 'PS4':
           return int.tryParse(data['harga_ps4'].toString()) ?? 12000;
         case 'PS5':
           return int.tryParse(data['harga_ps5'].toString()) ?? 18000;
         default:
-          return int.tryParse(data['harga_ps4'].toString()) ?? 12000;
+          return 12000;
       }
     }
     return 12000;
   }
 
-  // ==================== AUTHENTICATION ====================
   Future<Map<String, dynamic>> register(
     String nama,
     String email,
@@ -387,7 +379,6 @@ class ApiService {
     }
   }
 
-  // ==================== GLOBAL REST HELPER METHODS ====================
   Future<Map<String, dynamic>> _getMap(String url) async {
     try {
       final res = await http.get(

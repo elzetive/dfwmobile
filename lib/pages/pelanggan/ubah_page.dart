@@ -24,7 +24,7 @@ class UbahPelangganPage extends StatefulWidget {
 
 class _UbahPelangganPageState extends State<UbahPelangganPage> {
   final ApiService _apiService = ApiService();
-  
+
   late TextEditingController _namaController;
   late TextEditingController _teleponController;
   late TextEditingController _alamatController;
@@ -47,34 +47,44 @@ class _UbahPelangganPageState extends State<UbahPelangganPage> {
   }
 
   Future<void> _simpanPerubahan() async {
-    if (_namaController.text.isEmpty || _teleponController.text.isEmpty || _alamatController.text.isEmpty) {
+    if (_namaController.text.isEmpty ||
+        _teleponController.text.isEmpty ||
+        _alamatController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Semua kolom wajib diisi!'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('Semua kolom wajib diisi!'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
 
     setState(() => _isLoading = true);
 
-    // # Tetep kirim status lama ke API biar ga error validasi Laravelnya
     bool sukses = await _apiService.editPelanggan(
       widget.id,
       _namaController.text,
       _teleponController.text,
       _alamatController.text,
-      widget.statusLama, 
+      widget.statusLama,
     );
 
     setState(() => _isLoading = false);
 
     if (sukses && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Data berhasil diubah!'), backgroundColor: AppColors.primaryGreen),
+        const SnackBar(
+          content: Text('Data berhasil diubah!'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
       );
       Navigator.pop(context);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal mengubah data.'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('Gagal mengubah data.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -84,7 +94,14 @@ class _UbahPelangganPageState extends State<UbahPelangganPage> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
-        title: const Text('Ubah Pelanggan', style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Ubah Pelanggan',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.white,
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
@@ -106,18 +123,21 @@ class _UbahPelangganPageState extends State<UbahPelangganPage> {
                 Center(
                   child: Text(
                     'Ubah Data Pelanggan #${widget.id}',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 30),
-                
+
                 _buildLabel('Nama Pelanggan'),
                 TextField(
                   controller: _namaController,
                   decoration: _inputStyle(),
                 ),
                 const SizedBox(height: 16),
-                
+
                 _buildLabel('Nomor Telepon (WhatsApp)'),
                 TextField(
                   controller: _teleponController,
@@ -125,7 +145,7 @@ class _UbahPelangganPageState extends State<UbahPelangganPage> {
                   decoration: _inputStyle(),
                 ),
                 const SizedBox(height: 16),
-                
+
                 _buildLabel('Alamat Lengkap'),
                 TextField(
                   controller: _alamatController,
@@ -141,25 +161,54 @@ class _UbahPelangganPageState extends State<UbahPelangganPage> {
                       onPressed: () => Navigator.pop(context),
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.grey.shade200,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      child: const Text('Batal', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'Batal',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: _isLoading ? null : _simpanPerubahan,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryGreen,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      child: _isLoading 
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Text('Simpan Perubahan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Simpan Perubahan',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
@@ -171,15 +220,28 @@ class _UbahPelangganPageState extends State<UbahPelangganPage> {
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87)),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: Colors.black87,
+        ),
+      ),
     );
   }
 
   InputDecoration _inputStyle() {
     return InputDecoration(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.primaryGreen)),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: AppColors.primaryGreen),
+      ),
     );
   }
 }

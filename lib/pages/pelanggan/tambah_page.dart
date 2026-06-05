@@ -32,17 +32,14 @@ class _TambahPelangganPageState extends State<TambahPelangganPage> {
       return;
     }
 
-    // 1. Kirim data ke API Laravel secara asinkronus
     bool sukses = await _apiService.tambahPelanggan(
       _namaController.text,
       _teleponController.text,
       _alamatController.text,
     );
 
-    // 2. Kunci pengaman Async Gap: Pastikan widget masih nempel di layar
     if (!mounted) return;
 
-    // 3. Eksekusi feedback UI menggunakan BuildContext setelah dipastikan aman
     if (sukses) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

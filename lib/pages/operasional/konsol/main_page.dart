@@ -273,7 +273,7 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
           },
         ),
         title: const Text(
-          'Daftar Hardware Konsol',
+          'Daftar Konsol',
           style: TextStyle(
             color: AppColors.primaryGreen,
             fontWeight: FontWeight.bold,
@@ -388,7 +388,7 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.01),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -436,7 +436,7 @@ class _DaftarKonsolPageState extends State<DaftarKonsolPage> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(status).withOpacity(0.12),
+                  color: _getStatusColor(status).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Text(

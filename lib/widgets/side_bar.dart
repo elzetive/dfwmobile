@@ -39,11 +39,12 @@ class SideBar extends StatelessWidget {
                     builder: (context, snapshot) {
                       String namaUsaha = '';
 
-                      if (snapshot.hasData && snapshot.data!['success'] == true) {
-                        
-                        String fullNama = snapshot.data!['data']['nama_usaha'].toString();
-                        String kataPertama = fullNama.split(' ')[0]; 
-                        namaUsaha = '$kataPertama Menu'; 
+                      if (snapshot.hasData &&
+                          snapshot.data!['success'] == true) {
+                        String fullNama = snapshot.data!['data']['nama_usaha']
+                            .toString();
+                        String kataPertama = fullNama.split(' ')[0];
+                        namaUsaha = '$kataPertama Menu';
                       }
 
                       return Text(
@@ -56,7 +57,6 @@ class SideBar extends StatelessWidget {
                       );
                     },
                   ),
-                  // ===============================================
                 ],
               ),
             ),
@@ -70,7 +70,8 @@ class SideBar extends StatelessWidget {
           _buildDrawerItem(
             icon: Icons.list_alt_outlined,
             title: 'Transaksi',
-            isActive: currentRoute == '/transaksi' ||
+            isActive:
+                currentRoute == '/transaksi' ||
                 currentRoute == '/tambah-transaksi' ||
                 currentRoute == '/pengembalian',
             onTap: () => Navigator.pushReplacementNamed(context, '/transaksi'),
@@ -78,22 +79,26 @@ class SideBar extends StatelessWidget {
           _buildDrawerItem(
             icon: Icons.settings_input_component_outlined,
             title: 'Operasional',
-            isActive: currentRoute == '/operasional' ||
+            isActive:
+                currentRoute == '/operasional' ||
                 currentRoute == '/daftar-konsol' ||
                 currentRoute == '/daftar-tv',
-            onTap: () => Navigator.pushReplacementNamed(context, '/operasional'),
+            onTap: () =>
+                Navigator.pushReplacementNamed(context, '/operasional'),
           ),
           _buildDrawerItem(
             icon: Icons.people_outline,
             title: 'Pelanggan',
-            isActive: currentRoute == '/pelanggan' ||
+            isActive:
+                currentRoute == '/pelanggan' ||
                 currentRoute == '/tambah-pelanggan',
             onTap: () => Navigator.pushReplacementNamed(context, '/pelanggan'),
           ),
           _buildDrawerItem(
             icon: Icons.bar_chart_outlined,
             title: 'Laporan',
-            isActive: currentRoute == '/laporan' || currentRoute == '/detail-laporan',
+            isActive:
+                currentRoute == '/laporan' || currentRoute == '/detail-laporan',
             onTap: () => Navigator.pushReplacementNamed(context, '/laporan'),
           ),
           _buildDrawerItem(

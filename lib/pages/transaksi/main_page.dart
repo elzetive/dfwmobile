@@ -17,8 +17,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
   @override
   void initState() {
     super.initState();
-    _transaksiData = _apiService
-        .fetchSemuaTransaksi(); // Memuat seluruh riwayat data
+    _transaksiData = _apiService.fetchSemuaTransaksi();
   }
 
   Future<void> _refreshData() async {
@@ -37,7 +36,6 @@ class _TransaksiPageState extends State<TransaksiPage> {
           children: [
             Image.asset('assets/images/logo.png', height: 30),
             const SizedBox(width: 10),
-            // ===== SUNTIKAN FUTUREBUILDER =====
             FutureBuilder<Map<String, dynamic>>(
               future: _apiService.fetchPengaturan(),
               builder: (context, snapshot) {
@@ -97,7 +95,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
                       ),
                       _buildStatCard(
                         'Sesi Aktif',
-                        '${list.where((tx) => tx['status'] == 'Aktif').length}', // Filter sesi dinamis
+                        '${list.where((tx) => tx['status'] == 'Aktif').length}',
                         AppColors.primaryGreen,
                       ),
                     ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dfw_playstation/core/app_colors.dart';
 import 'package:dfw_playstation/widgets/side_bar.dart';
-import 'package:dfw_playstation/services/api_service.dart'; // 1. Import Service API Laravel
+import 'package:dfw_playstation/services/api_service.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -15,25 +15,27 @@ class _DashboardPageState extends State<DashboardPage>
   final ApiService _apiService = ApiService();
   late Future<Map<String, dynamic>> _dashboardData;
   late Future<List<dynamic>> _transactionData;
+  late Future<Map<String, dynamic>> _settingData;
 
   @override
   void initState() {
     super.initState();
-    // Panggil API saat halaman dimuat pertama kali
+    _loadAllData();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  void _loadAllData() {
     _dashboardData = _apiService.fetchDashboardData();
     _transactionData = _apiService.fetchSemuaTransaksi();
-    // Tambahkan observer untuk mendeteksi ketika app kembali di-focus
-    WidgetsBinding.instance.addObserver(this);
+    _settingData = _apiService.fetchPengaturan();
   }
 
   @override
   void dispose() {
-    // Hapus observer saat halaman ditutup
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  // Refresh data ketika app kembali ke foreground
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -41,11 +43,11 @@ class _DashboardPageState extends State<DashboardPage>
     }
   }
 
-  // Fungsi Pull to Refresh untuk memperbarui data saat layar ditarik ke bawah
   Future<void> _refreshData() async {
     setState(() {
       _dashboardData = _apiService.fetchDashboardData();
       _transactionData = _apiService.fetchSemuaTransaksi();
+      _settingData = _apiService.fetchPengaturan();
     });
   }
 
@@ -60,12 +62,15 @@ class _DashboardPageState extends State<DashboardPage>
             Image.asset('assets/images/logo.png', height: 30),
             const SizedBox(width: 10),
             FutureBuilder<Map<String, dynamic>>(
-              future: _apiService.fetchPengaturan(),
+              future: _settingData,
               builder: (context, snapshot) {
-                String namaUsaha = '';
+                String namaUsaha = 'DFW Playstation';
 
                 if (snapshot.hasData && snapshot.data!['success'] == true) {
-                  namaUsaha = snapshot.data!['data']['nama_usaha'].toString();
+                  if (snapshot.data!['data'] != null &&
+                      snapshot.data!['data']['nama_usaha'] != null) {
+                    namaUsaha = snapshot.data!['data']['nama_usaha'].toString();
+                  }
                 }
 
                 return Text(
@@ -84,22 +89,18 @@ class _DashboardPageState extends State<DashboardPage>
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      // 2. Bungkus body dengan RefreshIndicator dan FutureBuilder
       body: RefreshIndicator(
-        onRefresh:
-            _refreshData, // PERBAIKAN: Menggunakan onRefresh, bukan onPressed
+        onRefresh: _refreshData,
         color: AppColors.primaryGreen,
         child: FutureBuilder<Map<String, dynamic>>(
           future: _dashboardData,
           builder: (context, snapshot) {
-            // Skenario A: Server Laravel sedang merespon (Loading)
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
                 child: CircularProgressIndicator(color: AppColors.primaryGreen),
               );
             }
 
-            // Skenario B: Error koneksi (misal server mati / IP salah)
             if (snapshot.hasError) {
               return Center(
                 child: ListView(
@@ -122,7 +123,6 @@ class _DashboardPageState extends State<DashboardPage>
                           fontSize: 12,
                           color: Colors.grey,
                         ),
-
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -142,19 +142,16 @@ class _DashboardPageState extends State<DashboardPage>
               );
             }
 
-            // Skenario C: Sukses menarik data JSON dari MySQL via Laravel
             if (snapshot.hasData) {
               debugPrint('Dashboard Data: ${snapshot.data}');
-              final responseData = snapshot.data!['data'];
-              final stats = responseData['statistics'];
+              final responseData = snapshot.data!['data'] ?? {};
+              final stats = responseData['statistics'] ?? {};
 
-              debugPrint('Stats: $stats');
-
-              // Ekstrak data statistik riil backend
-              String totalUnit = stats['total_unit'].toString();
-              String sedangAktif = stats['sedang_aktif'].toString();
-              String tersedia = stats['tersedia'].toString();
-              String dalamPerawatan = stats['dalam_perawatan'].toString();
+              String totalUnit = (stats['total_unit'] ?? '0').toString();
+              String sedangAktif = (stats['sedang_aktif'] ?? '0').toString();
+              String tersedia = (stats['tersedia'] ?? '0').toString();
+              String dalamPerawatan = (stats['dalam_perawatan'] ?? '0')
+                  .toString();
 
               return SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -171,7 +168,6 @@ class _DashboardPageState extends State<DashboardPage>
                     ),
                     const SizedBox(height: 20),
 
-                    // GRID STATISTIK (Menggunakan data riil dari API)
                     GridView.count(
                       crossAxisCount: 2,
                       shrinkWrap: true,
@@ -233,7 +229,6 @@ class _DashboardPageState extends State<DashboardPage>
                     ),
                     const SizedBox(height: 15),
 
-                    // LIST TRANSAKSI DINAMIS dari API yang benar
                     FutureBuilder<List<dynamic>>(
                       future: _transactionData,
                       builder: (context, txSnapshot) {
@@ -247,10 +242,6 @@ class _DashboardPageState extends State<DashboardPage>
                         }
 
                         final List transactions = txSnapshot.data ?? [];
-                        debugPrint(
-                            'Transactions from API: $transactions');
-                        debugPrint(
-                            'Transactions count: ${transactions.length}');
 
                         if (transactions.isEmpty) {
                           return const Center(
@@ -276,7 +267,8 @@ class _DashboardPageState extends State<DashboardPage>
                             return _buildTransactionItem(
                               tx['nama_pelanggan'] ?? 'Anonim',
                               tx['nama_unit'] ?? '-',
-                              '${tx['durasi_jam']} Jam',
+                              '${tx['durasi_jam'] ?? 0} Jam',
+                              tx['status'] ?? 'Aktif',
                             );
                           },
                         );
@@ -294,12 +286,10 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
-  // --- Widget Komponen Suku Cadang UI Asli Kelompok Kalian ---
   Widget _buildStatCard(String title, String count, Color color) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        // PERBAIKAN: Menggunakan .withValues() untuk menghindari warning deprecated di Flutter baru
         border: Border.all(color: color.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(10),
         color: Colors.white,
@@ -345,7 +335,6 @@ class _DashboardPageState extends State<DashboardPage>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                // PERBAIKAN: Menggunakan .withValues() untuk menghindari warning deprecated di Flutter baru
                 color: AppColors.primaryGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -383,12 +372,20 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
-  Widget _buildTransactionItem(String name, String konsol, String durasi) {
+  Widget _buildTransactionItem(
+    String name,
+    String konsol,
+    String durasi,
+    String status,
+  ) {
+    final bool isAktif = status.toLowerCase() == 'aktif';
+    final Color statusColor = isAktif ? AppColors.primaryGreen : Colors.grey;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.primaryGreen),
+        border: Border.all(color: statusColor),
         borderRadius: BorderRadius.circular(10),
         color: Colors.white,
       ),
@@ -415,13 +412,14 @@ class _DashboardPageState extends State<DashboardPage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.primaryGreen),
+              border: Border.all(color: statusColor),
               borderRadius: BorderRadius.circular(20),
+              color: isAktif ? Colors.white : Colors.grey.shade100,
             ),
-            child: const Text(
-              'Aktif',
+            child: Text(
+              status,
               style: TextStyle(
-                color: AppColors.primaryGreen,
+                color: statusColor,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),

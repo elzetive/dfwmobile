@@ -62,7 +62,6 @@ class _TambahTVPageState extends State<TambahTVPage> {
         ),
       );
 
-      // FIX BLANK SCREEN: Proteksi navigasi web browser
       if (Navigator.canPop(context)) {
         Navigator.pop(context, true);
       } else {
@@ -132,7 +131,6 @@ class _TambahTVPageState extends State<TambahTVPage> {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              // FIX BLANK SCREEN: Proteksi tombol Batal
                               if (Navigator.canPop(context)) {
                                 Navigator.pop(context);
                               } else {

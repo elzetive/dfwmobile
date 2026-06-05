@@ -17,7 +17,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
 
   late TextEditingController _namaController;
   late TextEditingController _jamController;
-  late TextEditingController _ps3Controller; // PENGGANTIAN: Menggunakan PS3
+  late TextEditingController _ps3Controller;
   late TextEditingController _ps4Controller;
   late TextEditingController _ps5Controller;
 
@@ -42,8 +42,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
           data['nama_usaha']?.toString() ?? 'DFW Playstation';
       _jamController.text =
           data['jam_operasional']?.toString() ?? '09:00 - 23:00';
-      _ps3Controller.text =
-          data['harga_ps3']?.toString() ?? '8000'; // Sinkronisasi database
+      _ps3Controller.text = data['harga_ps3']?.toString() ?? '8000';
       _ps4Controller.text = data['harga_ps4']?.toString() ?? '12000';
       _ps5Controller.text = data['harga_ps5']?.toString() ?? '18000';
     }
@@ -53,19 +52,16 @@ class _PengaturanPageState extends State<PengaturanPage> {
   Future<void> _simpanPengaturan() async {
     setState(() => _isLoading = true);
 
-    // INTEGRASI BACKEND: Mengirimkan susunan tarif PS3, PS4, PS5 murni ke Laravel
     bool sukses = await _apiService.editPengaturan(
       _namaController.text.trim(),
       _jamController.text.trim(),
-      _ps3Controller.text.trim(), // Parameter 3: PS3 pengganti cadangan lama
+      _ps3Controller.text.trim(),
       _ps4Controller.text.trim(),
       _ps5Controller.text.trim(),
-      _ps5Controller.text
-          .trim(), // Cadangan parameter sisa agar tidak error argument length
     );
 
     if (sukses) {
-      await _loadData(); // Reload data murni agar AppBar text ikut refresh instan
+      await _loadData();
       setState(() => _isEditing = false);
     } else {
       setState(() => _isLoading = false);
@@ -153,7 +149,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
+                          color: Colors.black.withValues(alpha: 0.03),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -184,7 +180,6 @@ class _PengaturanPageState extends State<PengaturanPage> {
           ),
         ),
         const SizedBox(height: 16),
-        // SINKRONISASI DROPDOWN: Menampilkan murni PS3, PS4, PS5 saja
         _buildHargaCardView('Playstation 3', 'Rp ${_ps3Controller.text}'),
         _buildHargaCardView('Playstation 4', 'Rp ${_ps4Controller.text}'),
         _buildHargaCardView('Playstation 5', 'Rp ${_ps5Controller.text}'),

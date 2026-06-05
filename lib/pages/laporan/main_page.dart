@@ -128,7 +128,6 @@ class _LaporanPageState extends State<LaporanPage> {
                                 String rawDate = item['tanggal'].toString();
                                 String formattedDate = rawDate;
                                 try {
-                                  // Parsing aman untuk browser web lokal
                                   DateTime dt = DateTime.parse(rawDate);
                                   formattedDate = DateFormat(
                                     'EEEE, dd MMMM yyyy',

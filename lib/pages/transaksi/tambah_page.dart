@@ -42,65 +42,63 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
     });
   }
 
-  // FIX INTEGRASI: Mendeteksi tipe asli konsol dari data join objek database
   void _onUnitChanged(String? unitId) async {
     if (unitId == null) return;
 
-    // Set loading state agar user tidak bisa ubah durasi saat fetch tarif
     setState(() {
       _isLoadingTarif = true;
       selectedUnitId = unitId;
-      totalEstimasi = 0; // Reset harga saat unit berubah
-      selectedDuration = '1'; // Reset durasi ke 1 jam
+      totalEstimasi = 0;
     });
 
     try {
-      // 1. Cari data unit yang dipilih admin
-      final selectedUnit = _units.firstWhere((u) => u['id'].toString() == unitId);
+      final selectedUnit = _units.firstWhere(
+        (u) => u['id'].toString() == unitId,
+      );
 
-      // 2. Baca string tipe konsol murni ('PS3', 'PS4', 'PS5') dari object API
-      String tipeKonsolMurni = selectedUnit['tipe']?.toString() ?? '';
+      debugPrint("Data Unit Terpilih Kasir: $selectedUnit");
 
-      if (tipeKonsolMurni.isEmpty) {
-        String namaUnitLengkap =
+      String tipeKonsolMurni = '';
+
+      if (selectedUnit['tipe'] != null) {
+        tipeKonsolMurni = selectedUnit['tipe'].toString().toUpperCase().trim();
+      } else if (selectedUnit['konsol'] != null &&
+          selectedUnit['konsol']['tipe'] != null) {
+        tipeKonsolMurni = selectedUnit['konsol']['tipe']
+            .toString()
+            .toUpperCase()
+            .trim();
+      } else {
+        String namaUnit =
             selectedUnit['nama_unit']?.toString().toUpperCase() ?? '';
-        String kodeKonsol =
-            selectedUnit['konsol_id']?.toString().toUpperCase() ?? '';
-
-        if (namaUnitLengkap.contains('PS5') || kodeKonsol.contains('PS5')) {
+        if (namaUnit.contains('PS5')) {
           tipeKonsolMurni = 'PS5';
-        } else if (namaUnitLengkap.contains('PS3') ||
-            kodeKonsol.contains('PS3')) {
+        } else if (namaUnit.contains('PS3')) {
           tipeKonsolMurni = 'PS3';
         } else {
-          tipeKonsolMurni = 'PS4'; // Default fallback aman
+          tipeKonsolMurni = 'PS4';
         }
       }
 
-      // 3. Ambil harga sewa per jam real-time dari menu Pengaturan Laravel
+      debugPrint("Tipe Konsol Berhasil Dikunci: $tipeKonsolMurni");
+
       int tarifRealTime = await _apiService.getTarifByTipe(tipeKonsolMurni);
 
       if (!mounted) return;
 
       setState(() {
         hargaPerJamAktif = tarifRealTime;
-        // Hitung total estimasi harga dengan durasi awal (1 jam)
-        totalEstimasi = int.parse(selectedDuration) * hargaPerJamAktif;
         _isLoadingTarif = false;
+        totalEstimasi = int.parse(selectedDuration) * hargaPerJamAktif;
       });
     } catch (e) {
+      debugPrint("Error pada _onUnitChanged: $e");
       if (!mounted) return;
-      setState(() {
-        _isLoadingTarif = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengambil tarif: $e')),
-      );
+      setState(() => _isLoadingTarif = false);
     }
   }
 
   void _hitungHarga(String durasi) {
-    // Pastikan tarif sudah ter-load dan valid
     if (hargaPerJamAktif == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Pilih unit terlebih dahulu!')),
@@ -124,7 +122,9 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
 
     if (hargaPerJamAktif == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Harga konsol belum ter-load, coba lagi!')),
+        const SnackBar(
+          content: Text('Harga konsol belum ter-load, coba lagi!'),
+        ),
       );
       return;
     }
@@ -253,7 +253,9 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
                   _isLoadingTarif
                       ? Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 16),
+                            horizontal: 12,
+                            vertical: 16,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade200,
                             border: Border.all(color: Colors.grey.shade300),
@@ -293,10 +295,7 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
                   if (hargaPerJamAktif > 0) ...[
                     Text(
                       'Harga per Jam: Rp ${hargaPerJamAktif.toString()}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     const SizedBox(height: 10),
                   ],
@@ -350,7 +349,7 @@ class _TambahTransaksiPageState extends State<TambahTransaksiPage> {
                                     ? Colors.grey
                                     : Colors.white,
                                 _isLoadingTarif || hargaPerJamAktif == 0
-                                    ? () {} // Disable button
+                                    ? () {}
                                     : _prosesSewa,
                               ),
                             ),

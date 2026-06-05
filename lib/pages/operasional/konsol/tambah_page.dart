@@ -44,13 +44,12 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
 
     setState(() => _isSaving = true);
 
-    // Mengirimkan 5 argumen sesuai struktur ApiService yang baru
     bool sukses = await _apiService.tambahKonsol(
       idController.text.trim(),
       namaUnitController.text.trim(),
       selectedTipe!,
-      'Baik', // Argumen ke-4: Kondisi awal otomatis
-      'Tersedia', // Argumen ke-5: Status awal otomatis
+      'Baik',
+      'Tersedia',
     );
 
     if (!mounted) return;
@@ -64,7 +63,6 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
         ),
       );
 
-      // SOLUSI BLANK SCREEN: Cek tumpukan navigasi web browser terlebih dahulu
       if (Navigator.canPop(context)) {
         Navigator.pop(context, true);
       } else {
@@ -85,40 +83,65 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: Colors.white,
         elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacementNamed(context, '/daftar-konsol');
+            }
+          },
+        ),
         title: const Text(
           'Tambah Konsol Baru',
           style: TextStyle(
             color: AppColors.primaryGreen,
             fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
         centerTitle: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Text(
+                'Registrasi Hardware',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkGrey,
+                ),
+              ),
+              const SizedBox(height: 30),
+
               _buildLabel('ID / Kode Unit Konsol'),
               _buildInputField('Contoh: KSL-03', idController),
               const SizedBox(height: 24),
+
               _buildLabel('Nama Unit Konsol'),
               _buildInputField(
                 'Masukkan nama unit (Contoh: PS3 Super Slim 01)',
                 namaUnitController,
               ),
               const SizedBox(height: 24),
+
               _buildLabel('Tipe Konsol'),
               _buildDropdown(
-                hint: 'Pilih Tipe',
+                hint: 'Pilih Tipe Perangkat',
                 value: selectedTipe,
                 items: ['PS3', 'PS4', 'PS5'],
                 onChanged: (val) => setState(() => selectedTipe = val),
               ),
               const SizedBox(height: 50),
+
               _isSaving
                   ? const Center(
                       child: CircularProgressIndicator(
@@ -140,8 +163,12 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey.shade300,
+                              backgroundColor: Colors.grey.shade200,
                               padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
                             ),
                             child: const Text(
                               'Batal',
@@ -159,9 +186,13 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primaryGreen,
                               padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
                             ),
                             child: const Text(
-                              'Simpan',
+                              'Simpan Perangkat',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -179,12 +210,12 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
   }
 
   Widget _buildLabel(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.only(bottom: 8),
     child: Text(
       text,
       style: const TextStyle(
         fontWeight: FontWeight.bold,
-        fontSize: 16,
+        fontSize: 14,
         color: AppColors.darkGrey,
       ),
     ),
@@ -195,8 +226,13 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
         controller: controller,
         decoration: InputDecoration(
           hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: Colors.grey.shade50,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -216,7 +252,7 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
   }) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: Colors.grey.shade50,
       border: Border.all(color: Colors.grey.shade300),
       borderRadius: BorderRadius.circular(8),
     ),
@@ -224,7 +260,10 @@ class _TambahKonsolPageState extends State<TambahKonsolPage> {
       child: DropdownButton<String>(
         isExpanded: true,
         value: value,
-        hint: Text(hint),
+        hint: Text(
+          hint,
+          style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+        ),
         items: items
             .map((val) => DropdownMenuItem(value: val, child: Text(val)))
             .toList(),

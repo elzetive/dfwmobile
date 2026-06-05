@@ -14,13 +14,16 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
   final ApiService _apiService = ApiService();
 
   String formatRupiah(dynamic amount) {
-    if (amount == null) return 'Rp 0';
+    if (amount == null || amount.toString().trim().isEmpty) return 'Rp 0';
+
     final formatCurrency = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
       decimalDigits: 0,
     );
-    return formatCurrency.format(int.parse(amount.toString()));
+
+    final parsedValue = int.tryParse(amount.toString()) ?? 0;
+    return formatCurrency.format(parsedValue);
   }
 
   @override
@@ -33,7 +36,7 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
       DateTime dt = DateTime.parse(rawTanggal);
       tanggalJudul = DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(dt);
     } catch (e) {
-      // Abaikan kalo error parse
+      debugPrint('Gagal parsing format tanggal laporan: $e');
     }
 
     return Scaffold(
@@ -42,7 +45,6 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            // FIX BLANK SCREEN: Proteksi tombol back utama bawaan AppBar
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
             } else {
@@ -111,7 +113,6 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        // FIX BLANK SCREEN: Proteksi tombol kembali custom
                         if (Navigator.canPop(context)) {
                           Navigator.pop(context);
                         } else {
@@ -162,7 +163,13 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
 
                 listTransaksi.isEmpty
                     ? const Center(
-                        child: Text('Tidak ada rincian data transaksi.'),
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 40),
+                          child: Text(
+                            'Tidak ada rincian data transaksi.',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
                       )
                     : ListView.builder(
                         shrinkWrap: true,
@@ -213,7 +220,7 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryGreen.withOpacity(0.3),
+            color: AppColors.primaryGreen.withValues(alpha: 0.12),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -258,7 +265,7 @@ class _DetailLaporanPageState extends State<DetailLaporanPage> {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

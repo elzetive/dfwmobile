@@ -16,8 +16,7 @@ class _PengembalianPageState extends State<PengembalianPage> {
   @override
   void initState() {
     super.initState();
-    _transaksiAktif = _apiService
-        .fetchTransaksiAktif(); // Memuat HANYA data yang Aktif
+    _transaksiAktif = _apiService.fetchTransaksiAktif();
   }
 
   Future<void> _refreshData() async {
@@ -41,7 +40,7 @@ class _PengembalianPageState extends State<PengembalianPage> {
           backgroundColor: AppColors.primaryGreen,
         ),
       );
-      _refreshData(); // Refresh list agar data selesai langsung keluar dari list aktif
+      _refreshData();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

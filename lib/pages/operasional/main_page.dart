@@ -247,6 +247,36 @@ class _OperasionalPageState extends State<OperasionalPage> {
     );
   }
 
+  void _showKonfirmasiHapus(String id) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Unit Kombinasi?'),
+        content: const Text(
+          'Apakah kamu yakin ingin membongkar kombinasi unit play ini? Perangkat keras konsol dan TV akan dikembalikan ke status bebas.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              bool ok = await _apiService.hapusUnit(id);
+              if (ok) _refreshData();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text(
+              'Ya, Hapus',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -325,12 +355,11 @@ class _OperasionalPageState extends State<OperasionalPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // ROW SUB-MENU UTAMA (Konsol & TV)
                   Row(
                     children: [
                       Expanded(
                         child: _buildSubMenuCard(
-                          title: 'Daftar Hardware\nKonsol',
+                          title: 'Daftar Konsol',
                           icon: Icons.gamepad,
                           onTap: () => Navigator.pushNamed(
                             context,
@@ -341,7 +370,7 @@ class _OperasionalPageState extends State<OperasionalPage> {
                       const SizedBox(width: 15),
                       Expanded(
                         child: _buildSubMenuCard(
-                          title: 'Daftar Hardware\nMonitor TV',
+                          title: 'Daftar TV',
                           icon: Icons.tv,
                           onTap: () => Navigator.pushNamed(
                             context,
@@ -353,12 +382,11 @@ class _OperasionalPageState extends State<OperasionalPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // BADGE SUMMARY CARD INDIKATOR
                   Row(
                     children: [
                       Expanded(
                         child: _buildStatBadge(
-                          'Total Kombinasi',
+                          'Total Unit Play',
                           '$totalUnit',
                           Colors.blue,
                         ),
@@ -366,7 +394,7 @@ class _OperasionalPageState extends State<OperasionalPage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _buildStatBadge(
-                          'Unit Siap Main',
+                          'Unit Tersedia',
                           '$unitReady',
                           AppColors.primaryGreen,
                         ),
@@ -375,7 +403,6 @@ class _OperasionalPageState extends State<OperasionalPage> {
                   ),
                   const SizedBox(height: 25),
 
-                  // BUTTON TAMBAH DATA
                   ElevatedButton.icon(
                     onPressed: () => Navigator.pushNamed(
                       context,
@@ -383,7 +410,7 @@ class _OperasionalPageState extends State<OperasionalPage> {
                     ).then((_) => _refreshData()),
                     icon: const Icon(Icons.add, color: Colors.white),
                     label: const Text(
-                      'Buat Kombinasi Unit Baru',
+                      'Tambah Unit Baru',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -401,7 +428,7 @@ class _OperasionalPageState extends State<OperasionalPage> {
                   const SizedBox(height: 30),
 
                   const Text(
-                    'Kombinasi Unit Play Terdaftar:',
+                    'Unit Play Terdaftar:',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -469,9 +496,9 @@ class _OperasionalPageState extends State<OperasionalPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -508,7 +535,7 @@ class _OperasionalPageState extends State<OperasionalPage> {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.01),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -574,7 +601,7 @@ class _OperasionalPageState extends State<OperasionalPage> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(status).withOpacity(0.12),
+                  color: _getStatusColor(status).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Text(
@@ -606,36 +633,6 @@ class _OperasionalPageState extends State<OperasionalPage> {
                 ],
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showKonfirmasiHapus(String id) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Unit Kombinasi?'),
-        content: const Text(
-          'Apakah kamu yakin ingin membongkar kombinasi unit play ini? Perangkat keras konsol dan TV akan dikembalikan ke status bebas.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              bool ok = await _apiService.hapusUnit(id);
-              if (ok) _refreshData();
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text(
-              'Ya, Hapus',
-              style: TextStyle(color: Colors.white),
-            ),
           ),
         ],
       ),

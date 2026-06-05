@@ -29,17 +29,14 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
   }
 
   void _loadRelations() async {
-    // 1. Ambil semua data Master Konsol dan TV
     final allKonsols = await _apiService.fetchKonsolData();
     final allTvs = await _apiService.fetchTvData();
 
-    // 2. Ambil semua data Kombinasi Unit yang sudah terdaftar saat ini
     final registeredUnits = await _apiService.fetchUnitData();
 
     if (!mounted) return;
 
     setState(() {
-      // 3. Kumpulkan ID Konsol dan TV yang sudah dipakai di dalam Unit manapun
       final usedKonsolIds = registeredUnits
           .map((u) => u['konsol_id'].toString())
           .toSet();
@@ -47,9 +44,6 @@ class _TambahUnitPageState extends State<TambahUnitPage> {
           .map((u) => u['tv_id'].toString())
           .toSet();
 
-      // 4. FILTER KETAT: Hanya tampilkan Konsol dan TV yang:
-      // - Statusnya 'Tersedia'
-      // - ID-nya BELUM PERNAH terdaftar di tabel units (usedKonsolIds / usedTvIds)
       _konsols = allKonsols.where((k) {
         return k['status'] == 'Tersedia' &&
             !usedKonsolIds.contains(k['id'].toString());
